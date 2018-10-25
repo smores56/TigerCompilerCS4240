@@ -116,6 +116,7 @@ atom : constant
      | ID atom_tail ;
 atom_tail : LPARENS expr_list RPARENS
           | LBRACKET expr RBRACKET
+          | DOT ID
           | /* epsilon */ ;
 
 expr_list : expr expr_list_tail | /* epsilon */ ;
