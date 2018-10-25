@@ -1,0 +1,8 @@
+main let
+    type IntFloat = record i: int; f: float; end;
+    var r : IntFloat;
+in begin
+    r.i := 42;
+    r.f := 3.14;
+    printi(r.i);
+end

@@ -1,0 +1,7 @@
+main let
+        function print ( n : int ) begin
+                printi(n);
+        end;
+in begin
+        print(5);
+end

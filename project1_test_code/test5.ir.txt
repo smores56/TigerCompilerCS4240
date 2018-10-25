@@ -1,0 +1,21 @@
+#start_function main
+void main():
+int-list: 0b, 0a, $t0, $t1 
+float-list:
+    assign, 0b, 0,
+    assign, 0a, 0,
+main:
+    assign, $t0, 0,
+    brneq, 0a, 0b, if_label0
+    assign, $t0, 1,
+if_label0:
+    breq, $t0, 0, if_label1
+    add, 0b, 2, $t1
+    assign, 0a, $t1,
+    goto, if_label2, ,
+if_label1:
+    assign, 0a, 2,
+if_label2:
+    call, printi, 0a
+    return, , ,
+#end_function main

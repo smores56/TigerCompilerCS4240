@@ -1,0 +1,19 @@
+#start_function print
+void print(int X):
+int-list: X
+float-list:
+    call, printi, X
+    return, , ,
+#end_function print
+
+#start_function main
+void main():
+int-list:
+float-list: 0X, 0Y
+    assign, 0Y, 0.0,
+    assign, 0X, 0.0,
+main:
+    call, print, 5
+    assign, 0X, 1.0,
+    return, , ,
+#end_function main

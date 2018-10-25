@@ -1,0 +1,10 @@
+#start_function main
+void main():
+int-list: r.i
+float-list: r.f
+main:
+    assign, r.i, 42,
+    assign, r.f, 3.14,
+    call, printi, r.i
+    return, , ,
+#end_function main

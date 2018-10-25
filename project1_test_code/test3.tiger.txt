@@ -1,0 +1,10 @@
+main let
+	var X, Y : float := 0.0;
+	function print (X : int) begin
+		printi(X);
+	end;
+in begin
+	print(1-2+3);
+	print(1**2**3);
+	X := 1.0;
+end
