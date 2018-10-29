@@ -108,9 +108,7 @@ expr : logic_expr ((AND|OR) logic_expr)* ;
 logic_expr : cond_expr ((EQUALS|NEQ|LESS|GREATER|LTEQ|GTEQ) cond_expr)* ;
 cond_expr : term ((PLUS|MINUS) term)* ;
 term : factor ((MULT|DIV) factor)* ;
-factor : atom factor_tail ;
-factor_tail : POWER factor factor_tail
-            | /* epsilon */ ;
+factor : atom (POWER atom)* ;
 atom : constant
      | LPARENS expr RPARENS
      | ID atom_tail ;

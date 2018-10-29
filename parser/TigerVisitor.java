@@ -1,4 +1,4 @@
-// Generated from Tiger.g4 by ANTLR 4.7.1
+// Generated from ../grammar/Tiger.g4 by ANTLR 4.7.1
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -207,12 +207,6 @@ public interface TigerVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitFactor(TigerParser.FactorContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link TigerParser#factor_tail}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitFactor_tail(TigerParser.Factor_tailContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link TigerParser#atom}.
 	 * @param ctx the parse tree
