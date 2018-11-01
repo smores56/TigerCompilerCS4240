@@ -19,7 +19,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 
 	@Override
     public String visitTiger_program(TigerParser.Tiger_programContext ctx) {
-		return visitChildren(ctx);
+        // tiger_program : MAIN LET declaration_segment IN BEGIN stat_seq END EOF ;
+
+        return visitChildren(ctx);
 	}
 
 	/**
@@ -30,7 +32,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitDeclaration_segment(TigerParser.Declaration_segmentContext ctx) {
-		return visitChildren(ctx);
+        // declaration_segment : type_declaration_list var_declaration_list funct_declaration_list ;
+
+        return visitChildren(ctx);
 	}
 
 	/**
@@ -41,7 +45,10 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitType_declaration_list(TigerParser.Type_declaration_listContext ctx) {
-		return visitChildren(ctx);
+        // type_declaration_list : type_declaration type_declaration_list
+        //                       | /* epsilon */ ;
+
+        return visitChildren(ctx);
 	}
 
 	/**
@@ -52,7 +59,10 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitVar_declaration_list(TigerParser.Var_declaration_listContext ctx) {
-		return visitChildren(ctx);
+        // var_declaration_list : var_declaration var_declaration_list
+        //                      | /* epsilon */ ;
+
+        return visitChildren(ctx);
 	}
 
 	/**
@@ -63,7 +73,10 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitFunct_declaration_list(TigerParser.Funct_declaration_listContext ctx) {
-		return visitChildren(ctx);
+        // funct_declaration_list : funct_declaration funct_declaration_list
+        //                        | /* epsilon */ ;
+
+        return visitChildren(ctx);
 	}
 
 	/**
@@ -74,6 +87,8 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitType_declaration(TigerParser.Type_declarationContext ctx) {
+        // type_declaration : TYPE ID EQUALS type SEMI ;
+
         String name = ctx.getChild(1).getText();
         String structure = visitChildren(ctx.getChild(3));
         this.symbol_table.add_type(name, structure);
@@ -87,6 +102,11 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitType(TigerParser.TypeContext ctx) {
+        // type : type_id
+        //      | ARRAY LBRACKET INT RBRACKET OF type_id
+        //      | RECORD field_list END
+        //      | ID ;
+
         String first_node = ctx.getChild(0).getText();
         if (first_node.equals("int") || first_node.equals("float")) {
             return first_node;
@@ -110,7 +130,10 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitType_id(TigerParser.Type_idContext ctx) {
-		return ctx.getChild(0).getText();
+        // type_id : INT_KW
+        //         | FLOAT_KW ;
+
+    	return ctx.getChild(0).getText();
 	}
 
     /**
@@ -121,6 +144,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitField_list(TigerParser.Field_listContext ctx) {
+        // field_list : ID COLON type_id SEMI field_list
+        //            | /* epsilon */ ;
+
         if (ctx.getChildCount() == 0) {
             return "";
         } else {
@@ -143,6 +169,8 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitVar_declaration(TigerParser.Var_declarationContext ctx) {
+        // var_declaration : VAR id_list COLON type optional_init SEMI ;
+
         String[] vars = visitChildren(ctx.getChild(1)).split(",");
         String type = visitChildren(ctx.getChild(3));
 
@@ -159,6 +187,8 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitId_list(TigerParser.Id_listContext ctx) {
+        // id_list : ID id_list_tail ;
+
         return String.format("%s%s", ctx.getChild(0).getText(), visitChildren(ctx));
 	}
 
@@ -170,6 +200,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitId_list_tail(TigerParser.Id_list_tailContext ctx) {
+        // id_list_tail :  COMMA ID id_list_tail
+        //              | /* epsilon */ ;
+
         if (ctx.getChildCount() == 0) {
             return "";
         } else {
@@ -185,6 +218,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitOptional_init(TigerParser.Optional_initContext ctx) {
+        // optional_init : ASSIGN constant
+        //               | /* epsilon */ ;
+
         if (ctx.getChildCount() == 0) {
             return "";
         } else {
@@ -207,6 +243,8 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitFunct_declaration(TigerParser.Funct_declarationContext ctx) {
+        // funct_declaration : FUNCTION ID LPARENS param_list RPARENS ret_type BEGIN stat_seq END SEMI ;
+
         String name = ctx.getChild(1).getText();
         ArrayList<Tuple<String, String>> args = new ArrayList();
         for (String pair : visitChildren(ctx.getChild(3)).split(",")) {
@@ -231,6 +269,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitParam_list(TigerParser.Param_listContext ctx) {
+        // param_list : param param_list_tail
+        //            | /* epsilon */ ;
+
         if (ctx.getChildCount() == 0) {
             return "";
         } else {
@@ -248,6 +289,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitParam_list_tail(TigerParser.Param_list_tailContext ctx) {
+        // param_list_tail : COMMA param param_list_tail
+        //                 | /* epsilon */ ;
+
         if (ctx.getChildCount() == 0) {
             return "";
         } else {
@@ -265,6 +309,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitRet_type(TigerParser.Ret_typeContext ctx) {
+        // ret_type : type
+        //          | /* epsilon */ ;
+
         String type = ctx.getText();
         return type.length() > 0 ? type : null;
 	}
@@ -277,6 +324,8 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitParam(TigerParser.ParamContext ctx) {
+        // param : ID COLON type ;
+
         return ctx.getText();
 	}
 
@@ -288,6 +337,8 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitStat_seq(TigerParser.Stat_seqContext ctx) {
+        // stat_seq : stat stat_seq_tail ;
+
 		return visitChildren(ctx);
 	}
 
@@ -299,7 +350,10 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitStat_seq_tail(TigerParser.Stat_seq_tailContext ctx) {
-		return visitChildren(ctx);
+        // stat_seq_tail : stat stat_seq_tail
+        //               | /* epsilon */ ;
+
+    	return visitChildren(ctx);
 	}
 
 	/**
@@ -317,7 +371,6 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         //      | BREAK SEMI
         //      | RETURN expr SEMI
         //      | LET declaration_segment IN stat_seq END ;
-        //
 
         String first_node = ctx.getChild(0).getText();
 
@@ -368,7 +421,7 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         String expr_type = visitChildren(ctx.getChild(1));
         // assert expr_type.equals("bool");
         visitChildren(ctx.getChild(3));
-        visitChildren(ctx.getChild(4)));
+        visitChildren(ctx.getChild(4));
 	}
 
     /**
@@ -379,7 +432,8 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitStat_tail_b(TigerParser.Stat_tail_bContext ctx) {
-        // stat_tail_b : ENDIF SEMI | ELSE stat_seq ENDIF SEMI ;
+        // stat_tail_b : ENDIF SEMI
+        //             | ELSE stat_seq ENDIF SEMI ;
 
         if (ctx.getChild(0).getText().equals("else")) {
             visitChildren(ctx.getChild(1));
@@ -512,7 +566,7 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
                 String type = visitChildren(ctx.getChild(i));
                 // assert type.equals("int");
             }
-            return "int";g
+            return "int";
         }
 	}
 
@@ -548,7 +602,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitCond_expr(TigerParser.Cond_exprContext ctx) {
-		return visitChildren(ctx);
+        // cond_expr : term ((PLUS|MINUS) term)* ;
+
+    	return visitChildren(ctx);
 	}
 
     /**
@@ -559,7 +615,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitTerm(TigerParser.TermContext ctx) {
-		return visitChildren(ctx);
+        // term : factor ((MULT|DIV) factor)* ;
+
+        return visitChildren(ctx);
 	}
 
     /**
@@ -570,7 +628,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitFactor(TigerParser.FactorContext ctx) {
-		return visitChildren(ctx);
+        // factor : atom (POWER atom)* ;
+
+    	return visitChildren(ctx);
 	}
 
     /**
@@ -581,7 +641,11 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitAtom(TigerParser.AtomContext ctx) {
-		return visitChildren(ctx);
+        // atom : constant
+        //      | LPARENS expr RPARENS
+        //      | ID atom_tail ;
+
+    	return visitChildren(ctx);
 	}
 
     /**
@@ -592,7 +656,12 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitAtom_tail(TigerParser.Atom_tailContext ctx) {
-		return visitChildren(ctx);
+        // atom_tail : LPARENS expr_list RPARENS
+        //           | LBRACKET expr RBRACKET
+        //           | DOT ID
+        //           | /* epsilon */ ;
+
+    	return visitChildren(ctx);
 	}
 
     /**
@@ -603,6 +672,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitExpr_list(TigerParser.Expr_listContext ctx) {
+        // expr_list : expr expr_list_tail
+        //           | /* epsilon */ ;
+
 		return visitChildren(ctx);
 	}
 
@@ -614,7 +686,10 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitExpr_list_tail(TigerParser.Expr_list_tailContext ctx) {
-		return visitChildren(ctx);
+        // expr_list_tail : COMMA expr expr_list_tail
+        //                | /* epsilon */ ;
+
+    	return visitChildren(ctx);
 	}
 
 }
