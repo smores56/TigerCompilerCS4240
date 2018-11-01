@@ -17,6 +17,10 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         this.scope_stack.push("main");
     }
 
+    public SymbolTable get_symbol_table() {
+        return this.symbol_table();
+    }
+
 	@Override
     public String visitTiger_program(TigerParser.Tiger_programContext ctx) {
         // tiger_program : MAIN LET declaration_segment IN BEGIN stat_seq END EOF ;

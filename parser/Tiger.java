@@ -4,6 +4,7 @@ import java.util.Stack;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
+
 public class Tiger {
 
     public static void main(String[] args) throws Exception {
@@ -17,7 +18,7 @@ public class Tiger {
         SemanticAnalysisVisitor analyzer = new SemanticAnalysisVisitor();
         analyzer.visit(tree);
 
-        IRGenVisitor visitor = new IRGenVisitor();
+        IRGenVisitor visitor = new IRGenVisitor(analyzer.get_symbol_table());
         visitor.visit(tree);
     }
 }
@@ -25,18 +26,14 @@ public class Tiger {
 
 class IRGenVisitor extends TigerBaseVisitor<String> {
     private SymbolTable symbol_table;
-    private Stack<String> scope_stack;
     private Stack<Scope> scopes;
 
-    public void emit(String s){
-      System.out.println(s);
+    public void emit(String s) {
+        System.out.println(s);
     }
 
-    public IRGenVisitor() {
-        this.symbol_table = new SymbolTable();
-        this.symbol_table.add_scope("main");
-        this.scope_stack = new Stack();
-        this.scope_stack.push("main");
+    public IRGenVisitor(SymbolTable symbol_table) {
+        this.symbol_table = symbol_table;
         this.scopes = new Stack();
         this.scopes.push(new Scope("main"));
     }
@@ -55,9 +52,8 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
 	@Override
 	public String visitDeclaration_segment(TigerParser.Declaration_segmentContext ctx) {
 		String s = visitChildren(ctx);
-    //emit(s);
-    emit(this.scopes.peek().string());
-    return s;
+        emit(this.scopes.peek().string());
+        return s;
 	}
 
 	/**
