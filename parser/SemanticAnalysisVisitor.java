@@ -391,7 +391,6 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
             String type2 = visit(ctx.getChild(5));
             // TODO: assert type.equals(type2) ???
             // TODO: assert (type.equals("int") || type.equals("float")) ???
-            this.symbol_table.add_var_to_scope(var, type, this.scope_stack.peek());
             visit(ctx.getChild(7));
         } else if (first_node.equals("break")) {
             // do nothing?
