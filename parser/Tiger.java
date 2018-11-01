@@ -52,8 +52,8 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	public String visitDeclaration_segment(TigerParser.Declaration_segmentContext ctx) {
 		String s = visitChildren(ctx);
     //emit(s);
-    emit(this.scopes.peek().string());
-    return s;
+    	emit(this.scopes.peek().string());
+    	return s;
 	}
 
 	/**
@@ -97,14 +97,14 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitType_declaration(TigerParser.Type_declarationContext ctx) {
-    String name = ctx.getChild(1).getText();
-    String count = "0";
-    String type = ctx.getChild(3).getText();
-    if(ctx.getChild(3).getText().contains("[")){
-      count = ((TigerParser.TypeContext)ctx.getChild(3)).INT().getText();
-      type = ((TigerParser.TypeContext)ctx.getChild(3)).type_id().getText();
-    }
-    this.scopes.peek().addType(name, type, count);
+    	String name = ctx.getChild(1).getText();
+    	String count = "0";
+    	String type = ctx.getChild(3).getText();
+    	if(ctx.getChild(3).getText().contains("[")){
+      		count = ((TigerParser.TypeContext)ctx.getChild(3)).INT().getText();
+      		type = ((TigerParser.TypeContext)ctx.getChild(3)).type_id().getText();
+    	}
+    	this.scopes.peek().addType(name, type, count);
 		return visitChildren(ctx);
 	}
 
@@ -149,13 +149,14 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitVar_declaration(TigerParser.Var_declarationContext ctx) {
-    for(String s: ctx.getChild(1).getText().split(",")){
-      this.scopes.peek().addVariable(s,ctx.getChild(3).getText());
-      try{
-        this.scopes.peek().addAssignment(s,ctx.getChild(4).getText().split("=")[1]);
-      }
-      catch(Exception e){}
-    }
+    	for(String s: ctx.getChild(1).getText().split(",")){
+      		this.scopes.peek().addVariable(s,ctx.getChild(3).getText());
+      		try{
+        		this.scopes.peek().addAssignment(s,ctx.getChild(4).getText().split("=")[1]);
+      		} catch(Exception e){
+				System.out.println(e.getMessage());
+			}
+    	}
 		return visitChildren(ctx);
 	}
 
