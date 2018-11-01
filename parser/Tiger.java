@@ -98,11 +98,6 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitType_declaration(TigerParser.Type_declarationContext ctx) {
-<<<<<<< HEAD
-        String name = ctx.getChild(1).getText();
-        String structure = visitChildren(ctx.getChild(3));
-        this.symbol_table.add_type(name, structure);
-=======
     String name = ctx.getChild(1).getText();
     String count = "0";
     String type = ctx.getChild(3).getText();
@@ -112,7 +107,6 @@ class MyVisitor extends TigerBaseVisitor<String> {
     }
     this.scopes.peek().addType(name, type, count);
 		return visitChildren(ctx);
->>>>>>> 1d3f0451b76641f45df4bbc7488a6ab287900c26
 	}
 
 	/**
