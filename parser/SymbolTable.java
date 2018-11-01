@@ -108,7 +108,6 @@ public class SymbolTable {
             throw new RuntimeException(
                 String.format("Variable already exists: %s of type '%s'", var_name, var_type));
         } else {
-            System.out.println(String.format("Adding variable to scope: %s of type '%s'", var_name, var_type));
             scope.add(new VariableSymbol(var_name, var_type));
         }
     }
