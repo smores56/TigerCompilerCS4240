@@ -105,7 +105,7 @@ sign : PLUS | MINUS | /* epsilon */ ;
 constant_tail : INT | FLOAT ;
 
 expr : logic_expr ((AND|OR) logic_expr)* ;
-logic_expr : cond_expr ((EQUALS|NEQ|LESS|GREATER|LTEQ|GTEQ) cond_expr)* ;
+logic_expr : cond_expr ((EQUALS|NEQ|LESS|GREATER|LTEQ|GTEQ) cond_expr)? ;
 cond_expr : term ((PLUS|MINUS) term)* ;
 term : factor ((MULT|DIV) factor)* ;
 factor : atom (POWER atom)* ;
