@@ -71,7 +71,7 @@ public class SymbolTable {
         if (scope == null) {
             throw new RuntimeException("scope not recognized");
         } else {
-            return get_var_from_scope(scope, var_name) == null;
+            return get_var_from_scope(scope, var_name) != null;
         }
     }
 
@@ -94,8 +94,10 @@ public class SymbolTable {
         if (scope == null) {
             throw new RuntimeException("scope not recognized");
         } else if (this.get_var_from_scope(scope, var_name) != null) {
-            throw new RuntimeException("variable already exists");
+            throw new RuntimeException(
+                String.format("Variable already exists: %s of type '%s'", var_name, var_type));
         } else {
+            System.out.println(String.format("Adding variable to scope: %s of type '%s'", var_name, var_type));
             scope.add(new VariableSymbol(var_name, var_type));
         }
     }
@@ -130,7 +132,7 @@ public class SymbolTable {
     }
 
     public boolean function_exists(String name) {
-        return this.get_function(name) == null;
+        return this.get_function(name) != null;
     }
 
     public void add_function(String name, ArrayList<Tuple<String, String>> args, String return_type) {
@@ -159,12 +161,13 @@ public class SymbolTable {
     }
 
     public boolean valid_type(String type_name) {
-        return this.find_type(type_name) == null;
+        return this.find_type(type_name) != null;
     }
 
     public void add_type(String type_name, String structure) {
         if (this.valid_type(type_name)) {
-            throw new RuntimeException("Duplicate type added");
+            throw new RuntimeException(
+                String.format("Duplicate type added: %s with structure '%s'", type_name, structure));
         } else {
             this.type_table.add(new TypeSymbol(type_name, structure));
         }
