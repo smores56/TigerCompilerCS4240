@@ -1,7 +1,9 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Stack;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
+
 
 public class Tiger {
 
@@ -13,26 +15,25 @@ public class Tiger {
         TigerParser parser = new TigerParser(tok);
         ParseTree tree = parser.tiger_program();
 
-        MyVisitor visitor = new MyVisitor();
+        SemanticAnalysisVisitor analyzer = new SemanticAnalysisVisitor();
+        analyzer.visit(tree);
+
+        IRGenVisitor visitor = new IRGenVisitor(analyzer.get_symbol_table());
         visitor.visit(tree);
     }
 }
 
 
-class MyVisitor extends TigerBaseVisitor<String> {
+class IRGenVisitor extends TigerBaseVisitor<String> {
     private SymbolTable symbol_table;
-    private Stack<String> scope_stack;
     private Stack<Scope> scopes;
 
-    public void emit(String s){
-      System.out.println(s);
+    public void emit(String s) {
+        System.out.println(s);
     }
 
-    public MyVisitor() {
-        this.symbol_table = new SymbolTable();
-        this.symbol_table.add_scope("main");
-        this.scope_stack = new Stack();
-        this.scope_stack.push("main");
+    public IRGenVisitor(SymbolTable symbol_table) {
+        this.symbol_table = symbol_table;
         this.scopes = new Stack();
         this.scopes.push(new Scope("main"));
     }
@@ -278,31 +279,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitStat(TigerParser.StatContext ctx) {
-        // stat : assign_or_func
-        //      | stat_tail_a
-        //      | WHILE expr DO stat_seq ENDDO SEMI
-        //      | FOR ID ASSIGN expr TO expr DO stat_seq ENDDO SEMI
-        //      | BREAK SEMI
-        //      | RETURN expr SEMI
-        //      | LET declaration_segment IN stat_seq END ;
-        //
-
-        String first_node = ctx.getChild(0).getText();
-
-        if (first_node.equals("while")) {
-
-        }
-
-        // stat_tail_a : IF expr THEN stat_seq stat_tail_b ;
-        // stat_tail_b : ENDIF SEMI | ELSE stat_seq ENDIF SEMI ;
-        //
-        // assign_or_func : ID aof_tail ;
-        // aof_tail : LBRACKET expr RBRACKET ASSIGN expr SEMI
-        //          | DOT ID ASSIGN expr SEMI
-        //          | ASSIGN expr SEMI
-        //          | LPARENS expr_list RPARENS SEMI ;
-
-		return visitChildren(ctx);
+        return visitChildren(ctx);
 	}
 
     /**
@@ -313,7 +290,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitStat_tail_a(TigerParser.Stat_tail_aContext ctx) {
-		return visitChildren(ctx);
+        return visitChildren(ctx);
 	}
 
     /**
@@ -324,7 +301,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitStat_tail_b(TigerParser.Stat_tail_bContext ctx) {
-		return visitChildren(ctx);
+        return visitChildren(ctx);
 	}
 
 	/**
@@ -335,7 +312,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitAssign_or_func(TigerParser.Assign_or_funcContext ctx) {
-		return visitChildren(ctx);
+        return visitChildren(ctx);
 	}
 
 	/**
@@ -346,7 +323,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitAof_tail(TigerParser.Aof_tailContext ctx) {
-		return visitChildren(ctx);
+        return visitChildren(ctx);
 	}
 
     /**
@@ -357,7 +334,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitConstant(TigerParser.ConstantContext ctx) {
-		return visitChildren(ctx);
+        return visitChildren(ctx);
 	}
 
 	/**
@@ -368,7 +345,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitSign(TigerParser.SignContext ctx) {
-		return visitChildren(ctx);
+        return visitChildren(ctx);
 	}
 
     /**
@@ -379,7 +356,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitConstant_tail(TigerParser.Constant_tailContext ctx) {
-		return visitChildren(ctx);
+        return visitChildren(ctx);
 	}
 
     /**
@@ -390,7 +367,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitExpr(TigerParser.ExprContext ctx) {
-		return visitChildren(ctx);
+        return visitChildren(ctx);
 	}
 
     /**
@@ -401,7 +378,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitLogic_expr(TigerParser.Logic_exprContext ctx) {
-		return visitChildren(ctx);
+        return visitChildren(ctx);
 	}
 
     /**

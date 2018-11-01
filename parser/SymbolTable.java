@@ -108,6 +108,27 @@ public class SymbolTable {
             .orElse(null);
     }
 
+    public String get_function_return_type(String name) {
+        FunctionSymbol fs = this.get_function(name);
+        if (fs == null) {
+            throw new RuntimeException("Can't find given function");
+        } else {
+            return fs.return_type;
+        }
+    }
+
+    public ArrayList<String> get_function_arg_types(String name) {
+        FunctionSymbol fs = this.get_function(name);
+        if (fs == null) {
+            throw new RuntimeException("Can't find given function");
+        } else {
+            return fs.args
+                .stream()
+                .map(t -> t.name)
+                .collect();
+        }
+    }
+
     public boolean function_exists(String name) {
         return this.get_function(name) == null;
     }

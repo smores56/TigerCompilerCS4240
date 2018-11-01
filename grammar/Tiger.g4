@@ -54,34 +54,48 @@ FLOAT : '0'..'9'+ '.' '0'..'9'+ ;
 
 declaration_segment : type_declaration_list var_declaration_list funct_declaration_list ;
 
-type_declaration_list : type_declaration type_declaration_list | /* epsilon */ ;
+type_declaration_list : type_declaration type_declaration_list
+                      | /* epsilon */ ;
 
-var_declaration_list : var_declaration var_declaration_list | /* epsilon */ ;
+var_declaration_list : var_declaration var_declaration_list
+                     | /* epsilon */ ;
 
-funct_declaration_list : funct_declaration funct_declaration_list | /* epsilon */ ;
+funct_declaration_list : funct_declaration funct_declaration_list
+                       | /* epsilon */ ;
 
 type_declaration : TYPE ID EQUALS type SEMI ;
 
-type : type_id | ARRAY LBRACKET INT RBRACKET OF type_id  | RECORD field_list END | ID ;
+type : type_id
+     | ARRAY LBRACKET INT RBRACKET OF type_id
+     | RECORD field_list END
+     | ID ;
 
-type_id : INT_KW | FLOAT_KW ;
-field_list : ID COLON type_id SEMI field_list | /* epsilon */ ;
+type_id : INT_KW
+        | FLOAT_KW ;
+field_list : ID COLON type_id SEMI field_list
+           | /* epsilon */ ;
 
 var_declaration : VAR id_list COLON type optional_init SEMI ;
 id_list : ID id_list_tail ;
-id_list_tail :  COMMA ID id_list_tail | /* epsilon */ ;
+id_list_tail :  COMMA ID id_list_tail
+             | /* epsilon */ ;
 
-optional_init : ASSIGN constant | /* epsilon */ ;
+optional_init : ASSIGN constant
+              | /* epsilon */ ;
 
 funct_declaration : FUNCTION ID LPARENS param_list RPARENS ret_type BEGIN stat_seq END SEMI ;
-param_list : param param_list_tail | /* epsilon */ ;
-param_list_tail : COMMA param param_list_tail | /* epsilon */ ;
+param_list : param param_list_tail
+           | /* epsilon */ ;
+param_list_tail : COMMA param param_list_tail
+                | /* epsilon */ ;
 
-ret_type : type | /* epsilon */ ;
+ret_type : type
+         | /* epsilon */ ;
 param : ID COLON type ;
 
 stat_seq : stat stat_seq_tail ;
-stat_seq_tail : stat stat_seq_tail | /* epsilon */ ;
+stat_seq_tail : stat stat_seq_tail
+              | /* epsilon */ ;
 
 stat : assign_or_func
      | stat_tail_a
@@ -92,7 +106,8 @@ stat : assign_or_func
      | LET declaration_segment IN stat_seq END ;
 
 stat_tail_a : IF expr THEN stat_seq stat_tail_b ;
-stat_tail_b : ENDIF SEMI | ELSE stat_seq ENDIF SEMI ;
+stat_tail_b : ENDIF SEMI
+            | ELSE stat_seq ENDIF SEMI ;
 
 assign_or_func : ID aof_tail ;
 aof_tail : LBRACKET expr RBRACKET ASSIGN expr SEMI
@@ -101,8 +116,11 @@ aof_tail : LBRACKET expr RBRACKET ASSIGN expr SEMI
          | LPARENS expr_list RPARENS SEMI ;
 
 constant : sign constant_tail ;
-sign : PLUS | MINUS | /* epsilon */ ;
-constant_tail : INT | FLOAT ;
+sign : PLUS
+     | MINUS
+     | /* epsilon */ ;
+constant_tail : INT
+              | FLOAT ;
 
 expr : logic_expr ((AND|OR) logic_expr)* ;
 logic_expr : cond_expr ((EQUALS|NEQ|LESS|GREATER|LTEQ|GTEQ) cond_expr)? ;
@@ -117,5 +135,7 @@ atom_tail : LPARENS expr_list RPARENS
           | DOT ID
           | /* epsilon */ ;
 
-expr_list : expr expr_list_tail | /* epsilon */ ;
-expr_list_tail : COMMA expr expr_list_tail | /* epsilon */ ;
+expr_list : expr expr_list_tail
+          | /* epsilon */ ;
+expr_list_tail : COMMA expr expr_list_tail
+               | /* epsilon */ ;
