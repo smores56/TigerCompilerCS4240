@@ -15,10 +15,10 @@ public class Tiger {
         TigerParser parser = new TigerParser(tok);
         ParseTree tree = parser.tiger_program();
 
-        SemanticAnalysisVisitor analyzer = new SemanticAnalysisVisitor();
-        analyzer.visit(tree);
+        //SemanticAnalysisVisitor analyzer = new SemanticAnalysisVisitor();
+        //analyzer.visit(tree);
 
-        IRGenVisitor visitor = new IRGenVisitor(analyzer.get_symbol_table());
+        IRGenVisitor visitor = new IRGenVisitor(new SymbolTable());//analyzer.get_symbol_table());
         visitor.visit(tree);
     }
 }
@@ -28,14 +28,14 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
     private SymbolTable symbol_table;
     private Stack<Scope> scopes;
 
-    public void emit(String s) {
-        System.out.println(s);
+    public void emit(String s){
+      System.out.println(s);
     }
 
-    public IRGenVisitor(SymbolTable symbol_table) {
+    public IRGenVisitor(SymbolTable symbol_table)  {
         this.symbol_table = symbol_table;
         this.scopes = new Stack();
-        this.scopes.push(new Scope("main"));
+        this.scopes.push(new Scope("main","void"));
     }
 
 	@Override
@@ -53,8 +53,8 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
 	public String visitDeclaration_segment(TigerParser.Declaration_segmentContext ctx) {
 		String s = visitChildren(ctx);
     //emit(s);
-    	emit(this.scopes.peek().string());
-    	return s;
+    emit(this.scopes.peek().string());
+    return s;
 	}
 
 	/**
@@ -87,7 +87,7 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitFunct_declaration_list(TigerParser.Funct_declaration_listContext ctx) {
-		return visitChildren(ctx);
+    return visitChildren(ctx);
 	}
 
 	/**
@@ -98,14 +98,14 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitType_declaration(TigerParser.Type_declarationContext ctx) {
-    	String name = ctx.getChild(1).getText();
-    	String count = "0";
-    	String type = ctx.getChild(3).getText();
-    	if(ctx.getChild(3).getText().contains("[")){
-      		count = ((TigerParser.TypeContext)ctx.getChild(3)).INT().getText();
-      		type = ((TigerParser.TypeContext)ctx.getChild(3)).type_id().getText();
-    	}
-    	this.scopes.peek().addType(name, type, count);
+        String name = ctx.getChild(1).getText();
+        String count = "0";
+        String type = ctx.getChild(3).getText();
+        if (ctx.getChild(3).getText().contains("[")) {
+            count = ((TigerParser.TypeContext)ctx.getChild(3)).INT().getText();
+            type = ((TigerParser.TypeContext)ctx.getChild(3)).type_id().getText();
+        }
+        this.scopes.peek().addType(name, type, count);
 		return visitChildren(ctx);
 	}
 
@@ -150,14 +150,13 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitVar_declaration(TigerParser.Var_declarationContext ctx) {
-    	for(String s: ctx.getChild(1).getText().split(",")){
-      		this.scopes.peek().addVariable(s,ctx.getChild(3).getText());
-      		try{
-        		this.scopes.peek().addAssignment(s,ctx.getChild(4).getText().split("=")[1]);
-      		} catch(Exception e){
-				System.out.println(e.getMessage());
-			}
-    	}
+    for(String s: ctx.getChild(1).getText().split(",")){
+      this.scopes.peek().addVariable(s,ctx.getChild(3).getText());
+      try{
+        this.scopes.peek().addAssignment(s,ctx.getChild(4).getText().split("=")[1]);
+      }
+      catch(Exception e){}
+    }
 		return visitChildren(ctx);
 	}
 
@@ -202,7 +201,16 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitFunct_declaration(TigerParser.Funct_declarationContext ctx) {
-		return visitChildren(ctx);
+    Scope newFunc;
+    if(ctx.ret_type().getText() != ""){
+    newFunc = new Scope(ctx.getChild(1).getText(), ctx.ret_type().getText());
+  }else{
+    newFunc = new Scope(ctx.getChild(1).getText(), "void");
+  }
+    this.scopes.push(newFunc);
+		String t =  visitChildren(ctx);
+    emit(this.scopes.pop().string());
+    return t;
 	}
 
     /**
@@ -246,6 +254,7 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitParam(TigerParser.ParamContext ctx) {
+    this.scopes.peek().addParam(ctx.getChild(0).getText(), ctx.getChild(2).getText());
 		return visitChildren(ctx);
 	}
 
