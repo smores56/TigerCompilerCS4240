@@ -17,7 +17,7 @@
         * Contains different files with test inputs for the IR, Symbol Table, and basic Tiger code.
 
 
-###2. How to Build
+### 2. How to Build
 * For compilation of the Tiger compile, running ```bash ./compile.sh``` will:
     1. Run ANTLR on the grammar provided in ```/grammar/Tiger.g4``` and create all necessary Java classes in ```/parser/```.
     2. Compile all of the Java files in the parser folder.
@@ -25,5 +25,5 @@
     1. Run the normal compilation routine.
     2. Run the Tiger compiler on all of the test code provided in the ```/project1_test_code/``` directory.
 
-###3. Run Examples
+### 3. Run Examples
 * ```java ./parser/Tiger ./project1_test_code/test1.tiger.txt```
