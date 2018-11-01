@@ -23,12 +23,19 @@ public class Tiger {
 class MyVisitor extends TigerBaseVisitor<String> {
     private SymbolTable symbol_table;
     private Stack<String> scope_stack;
+    private Stack<Scope> scopes;
+
+    public void emit(String s){
+      System.out.println(s);
+    }
 
     public MyVisitor() {
         this.symbol_table = new SymbolTable();
         this.symbol_table.add_scope("main");
         this.scope_stack = new Stack();
         this.scope_stack.push("main");
+        this.scopes = new Stack();
+        this.scopes.push(new Scope("main"));
     }
 
 	@Override
@@ -44,7 +51,10 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitDeclaration_segment(TigerParser.Declaration_segmentContext ctx) {
-		return visitChildren(ctx);
+		String s = visitChildren(ctx);
+    //emit(s);
+    emit(this.scopes.peek().string());
+    return s;
 	}
 
 	/**
@@ -88,9 +98,21 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitType_declaration(TigerParser.Type_declarationContext ctx) {
+<<<<<<< HEAD
         String name = ctx.getChild(1).getText();
         String structure = visitChildren(ctx.getChild(3));
         this.symbol_table.add_type(name, structure);
+=======
+    String name = ctx.getChild(1).getText();
+    String count = "0";
+    String type = ctx.getChild(3).getText();
+    if(ctx.getChild(3).getText().contains("[")){
+      count = ((TigerParser.TypeContext)ctx.getChild(3)).INT().getText();
+      type = ((TigerParser.TypeContext)ctx.getChild(3)).type_id().getText();
+    }
+    this.scopes.peek().addType(name, type, count);
+		return visitChildren(ctx);
+>>>>>>> 1d3f0451b76641f45df4bbc7488a6ab287900c26
 	}
 
 	/**
@@ -101,19 +123,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitType(TigerParser.TypeContext ctx) {
-        String first_node = ctx.getChild(0).getText();
-        if (first_node.equals("int") || first_node.equals("float")) {
-            return first_node;
-        } else if (first_node.equals("array")) {
-            String type = ctx.getChild(5).getText();
-            String length = ctx.getChild(2).getText();
-            return String.format("%s[%d]", type, length);
-        } else if (first_node.equals("record")) {
-            return String.format("record(%s)", visitChildren(ctx.getChild(1)));
-        } else {
-            assert symbol_table.valid_type(first_node);
-            return first_node;
-        }
+		return visitChildren(ctx);
 	}
 
 	/**
@@ -124,7 +134,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitType_id(TigerParser.Type_idContext ctx) {
-		return ctx.getChild(0).getText();
+		return visitChildren(ctx);
 	}
 
     /**
@@ -135,18 +145,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitField_list(TigerParser.Field_listContext ctx) {
-        if (ctx.getChildCount() == 0) {
-            return "";
-        } else {
-            String name = ctx.getChild(0).getText();
-            String type = ctx.getChild(2).getText();
-            String other_fields = visitChildren(ctx.getChild(4));
-            if (other_fields.length() == 0) {
-                return String.format("%s:%s", name, type);
-            } else {
-                return String.format("%s:%s,%s", name, type, other_fields);
-            }
-        }
+		return visitChildren(ctx);
 	}
 
     /**
@@ -157,12 +156,14 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitVar_declaration(TigerParser.Var_declarationContext ctx) {
-        String[] vars = visitChildren(ctx.getChild(1)).split(",");
-        String type = visitChildren(ctx.getChild(3));
-
-        for (String var : vars) {
-            this.symbol_table.add_var_to_scope(var, type, this.scope_stack.peek());
-        }
+    for(String s: ctx.getChild(1).getText().split(",")){
+      this.scopes.peek().addVariable(s,ctx.getChild(3).getText());
+      try{
+        this.scopes.peek().addAssignment(s,ctx.getChild(4).getText().split("=")[1]);
+      }
+      catch(Exception e){}
+    }
+		return visitChildren(ctx);
 	}
 
     /**
@@ -173,7 +174,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitId_list(TigerParser.Id_listContext ctx) {
-        return String.format("%s%s", ctx.getChild(0).getText(), visitChildren(ctx));
+		return visitChildren(ctx);
 	}
 
     /**
@@ -184,11 +185,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitId_list_tail(TigerParser.Id_list_tailContext ctx) {
-        if (ctx.getChildCount() == 0) {
-            return "";
-        } else {
-            return String.format(",%s%s", ctx.getChild(0).getText(), visitChildren(ctx));
-        }
+		return visitChildren(ctx);
 	}
 
     /**
@@ -199,18 +196,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitOptional_init(TigerParser.Optional_initContext ctx) {
-        if (ctx.getChildCount() == 0) {
-            return "";
-        } else {
-            String constant = ctx.getChild(1).getText();
-            if (constant.contains(".")) {
-                this.symbol_table.add_constant(constant, "float");
-                return "float";
-            } else {
-                this.symbol_table.add_constant(constant, "int");
-                return "int";
-            }
-        }
+		return visitChildren(ctx);
 	}
 
     /**
@@ -221,20 +207,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitFunct_declaration(TigerParser.Funct_declarationContext ctx) {
-        String name = ctx.getChild(1).getText();
-        ArrayList<Tuple<String, String>> args = new ArrayList();
-        for (String pair : visitChildren(ctx.getChild(3)).split(",")) {
-            String[] split = pair.split(":");
-            args.add(new Tuple(split[0], split[1]));
-        }
-        String return_type = visitChildren(ctx.getChild(5));
-        this.symbol_table.add_function(name, args, return_type);
-
-        this.scope_stack.push(name);
-		String result = visitChildren(ctx.getChild(7));
-        this.scope_stack.pop();
-
-        return result;
+		return visitChildren(ctx);
 	}
 
     /**
@@ -245,13 +218,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitParam_list(TigerParser.Param_listContext ctx) {
-        if (ctx.getChildCount() == 0) {
-            return "";
-        } else {
-            String param = ctx.getChild(0).getText();
-            String other_params = visitChildren(ctx.getChild(1));
-            return String.format("%s%s", param, other_params);
-        }
+		return visitChildren(ctx);
 	}
 
     /**
@@ -262,13 +229,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitParam_list_tail(TigerParser.Param_list_tailContext ctx) {
-        if (ctx.getChildCount() == 0) {
-            return "";
-        } else {
-            String param = ctx.getChild(1).getText();
-            String other_params = visitChildren(ctx.getChild(2));
-            return String.format("%s%s", param, other_params);
-        }
+		return visitChildren(ctx);
 	}
 
     /**
@@ -279,8 +240,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitRet_type(TigerParser.Ret_typeContext ctx) {
-        String type = ctx.getText();
-        return type.length() > 0 ? type : null;
+		return visitChildren(ctx);
 	}
 
     /**
@@ -291,7 +251,7 @@ class MyVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitParam(TigerParser.ParamContext ctx) {
-        return ctx.getText();
+		return visitChildren(ctx);
 	}
 
     /**
