@@ -125,7 +125,7 @@ public class SymbolTable {
             return fs.args
                 .stream()
                 .map(t -> t.name)
-                .collect();
+                .collect(Collectors.toCollection(() -> new ArrayList<String>()));
         }
     }
 
