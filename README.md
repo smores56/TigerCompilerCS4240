@@ -3,7 +3,7 @@
 ###### By Sam Mohr, Harish Kamath, and Andrey Lukin
 
 
-###1. Design Internals
+### 1. Design Internals
 * Project Structure
     * ```./grammar/```
         * ```Tiger.g4``` contains the grammar used by ANTLR to generate a parse tree of an inputted Tiger program.
