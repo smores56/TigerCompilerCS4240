@@ -38,7 +38,18 @@ public class SymbolTable {
         }
     }
 
-    private List<FunctionSymbol> function_table = new ArrayList<>();
+    private List<FunctionSymbol> function_table = new ArrayList<FunctionSymbol>() {{
+        add(new FunctionSymbol("printi", new ArrayList<VariableSymbol>() {{
+            add(new VariableSymbol("i", "int"));
+        }}, null));
+        add(new FunctionSymbol("flush", null, null));
+        add(new FunctionSymbol("not", new ArrayList<VariableSymbol>() {{
+            add(new VariableSymbol("i", "int"));
+        }}, "int"));
+        add(new FunctionSymbol("exit", new ArrayList<VariableSymbol>() {{
+            add(new VariableSymbol("i", "int"));
+        }}, null));
+    }};
     private List<TypeSymbol> type_table = new ArrayList<TypeSymbol>() {{
         add(new TypeSymbol("int", "int"));
         add(new TypeSymbol("float", "float"));

@@ -12,5 +12,5 @@ javac ./parser/*.java
 cd project1_test_code
 for filename in ./*.tiger.txt
 do
-    java ../parser/Tiger $filename
+    java ../parser/Tiger $filename > ./output/$filename.out
 done
