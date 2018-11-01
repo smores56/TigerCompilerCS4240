@@ -119,7 +119,7 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         } else if (first_node.equals("array")) {
             String type = ctx.getChild(5).getText();
             String length = ctx.getChild(2).getText();
-            return String.format("%s[%d]", type, length);
+            return String.format("%s[%s]", type, length);
         } else if (first_node.equals("record")) {
             return String.format("record(%s)", visit(ctx.getChild(1)));
         } else {
