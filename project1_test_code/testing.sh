@@ -12,5 +12,14 @@ javac ./parser/*.java
 cd project1_test_code
 for filename in ./*.tiger.txt
 do
-    java ../parser/Tiger $filename > ./output/$filename.out
+    cd ../parser/
+    parsedFileName=${filename:1:${#filename}}
+    parsedIrName=${parsedFileName/tiger/ir}
+
+    # Puts the output of our IR gen into /project1_test_code/output/*.tiger.txt.out
+    java Tiger ../project1_test_code/$filename > ../project1_test_code/output${filename:1:${#filename}}.out
+
+    # Puts the output of the difference between our IR and the provided IR into /project1_test_code/output/*.tiger.txt.diff.out
+    diff ../project1_test_code/$parsedIrName ../project1_test_code/output${filename:1:${#filename}}.out > ../project1_test_code/output${filename:1:${#filename}}.diff.out
+    cd ../project1_test_code
 done
