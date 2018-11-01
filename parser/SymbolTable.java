@@ -1,9 +1,9 @@
 import java.util.List;
+import java.util.Stack;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
-
 public class SymbolTable {
 
     public class FunctionSymbol {
@@ -20,11 +20,12 @@ public class SymbolTable {
 
     public class VariableSymbol {
         public String name;
-        public String type;
+        public Stack<String> types;
 
         public VariableSymbol(String name, String type) {
             this.name = name;
-            this.type = type;
+            this.types = new Stack();
+            this.types.push(type);
         }
     }
 
@@ -95,7 +96,7 @@ public class SymbolTable {
             if (var == null) {
                 throw new RuntimeException("variable doesn't exist in scope");
             } else {
-                return var.type;
+                return var.types.peek();
             }
         }
     }
@@ -109,6 +110,37 @@ public class SymbolTable {
                 String.format("Variable already exists: %s of type '%s'", var_name, var_type));
         } else {
             scope.add(new VariableSymbol(var_name, var_type));
+        }
+    }
+
+    public void let_var_in_scope(String var_name, String var_type, String scope_name) {
+        ArrayList<VariableSymbol> scope = this.scoped_var_tables.get(scope_name);
+        if (scope == null) {
+            throw new RuntimeException("scope not recognized");
+        } else {
+            VariableSymbol var = this.get_var_from_scope(scope, var_name);
+            if (var == null) {
+                scope.add(new VariableSymbol(var_name, var_type));
+            } else {
+                var.types.push(var_type);
+            }
+        }
+    }
+
+    public void end_let_binding_in_scope(String var_name, String scope_name) {
+        ArrayList<VariableSymbol> scope = this.scoped_var_tables.get(scope_name);
+        if (scope == null) {
+            throw new RuntimeException("scope not recognized");
+        } else {
+            VariableSymbol var = this.get_var_from_scope(scope, var_name);
+            if (var == null) {
+                throw new RuntimeException("Can't end let binding on non-existent variable");
+            } else {
+                var.types.pop();
+                if (var.types.empty()) {
+                    scope.remove(var_name);
+                }
+            }
         }
     }
 
@@ -154,7 +186,7 @@ public class SymbolTable {
                 .map(e -> new VariableSymbol(e.left, e.right))
                 .collect(Collectors.toCollection(() -> new ArrayList()));
             for (VariableSymbol arg : args2) {
-                if (!this.valid_type(arg.type)) {
+                if (!this.valid_type(arg.types.peek())) {
                     throw new RuntimeException("Unknown type used in function");
                 }
             }
