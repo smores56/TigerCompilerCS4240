@@ -23,7 +23,8 @@
     2. Compile all of the Java files in the parser folder.
 * To test, running ```bash ./project1_test_code/testing.sh``` will:
     1. Run the normal compilation routine.
-    2. Run the Tiger compiler on all of the test code provided in the ```/project1_test_code/``` directory.
+    2. Run the Tiger compiler on all of the test code provided in the ```/project1_test_code/``` directory and output them into the ```/project1_test_code/output/``` folder with a ```.tiger.txt.out``` as the output.
+    3. ```.tiger.txt.diff.out``` outputs the difference between the IR you had and the IR provided.
 
 ### 3. Run Examples
 * ```java ./parser/Tiger ./project1_test_code/test1.tiger.txt```
