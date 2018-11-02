@@ -2,11 +2,11 @@ import java.util.ArrayList;
 
 public class ScopeNode {
 
-    private ScopeNode parent;
-    private ArrayList<ScopeNode> children;
-    private VariableSymbol variables;
-    private FunctionSymbol functions;
-    private TypeSymbol types;
+    public ScopeNode parent;
+    public ArrayList<ScopeNode> children;
+    public VariableSymbol variables;
+    public FunctionSymbol functions;
+    public TypeSymbol types;
 
     public ScopeNode(ScopeNode parent, ArrayList<ScopeNode> children, VariableSymbol variables, FunctionSymbol function, TypeSymbol types) {
         this.parent = parent;
