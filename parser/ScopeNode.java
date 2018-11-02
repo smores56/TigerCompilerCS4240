@@ -4,11 +4,11 @@ public class ScopeNode {
 
     public ScopeNode parent;
     public ArrayList<ScopeNode> children;
-    public VariableSymbol variables;
-    public FunctionSymbol functions;
-    public TypeSymbol types;
+    public ArrayList<VariableSymbol> variables;
+    public ArrayList<FunctionSymbol> functions;
+    public ArrayList<TypeSymbol> types;
 
-    public ScopeNode(ScopeNode parent, ArrayList<ScopeNode> children, VariableSymbol variables, FunctionSymbol function, TypeSymbol types) {
+    public ScopeNode(ScopeNode parent, ArrayList<ScopeNode> children, ArrayList<VariableSymbol> variables, ArrayList<FunctionSymbol> function, ArrayList<TypeSymbol> types) {
         this.parent = parent;
         this.children = children;
         this.variables = variables;
@@ -17,7 +17,7 @@ public class ScopeNode {
     }
 
 
-    public ScopeNode(ScopeNode parent, VariableSymbol variables, FunctionSymbol function, TypeSymbol types) {
+    public ScopeNode(ScopeNode parent, ArrayList<VariableSymbol> variables, ArrayList<FunctionSymbol> function, ArrayList<TypeSymbol> types) {
         this.parent = parent;
         this.children = new ArrayList<ScopeNode>();
         this.variables = variables;

@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Stack;
+import java.util.HashMap;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
@@ -8,7 +9,7 @@ import org.antlr.v4.runtime.tree.*;
 class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 
     private SymbolTable symbol_table;
-    private Stack<String> scope_stack;
+	private Stack<String> scope_stack;
 
     public SemanticAnalysisVisitor() {
         this.symbol_table = new SymbolTable();
@@ -408,6 +409,10 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
                 }
             }
         } else if (first_node.equals("let")) {
+			// Sam please love me
+
+			HashMap<String, ScopeTree> scopeTrees = new HashMap<String, ScopeTree>();
+
             visit(ctx.getChild(1));
             visit(ctx.getChild(3));
         } else {
