@@ -8,16 +8,27 @@ public class Scope{
   public ArrayList<String> assignments;
   public ArrayList<String> ops;
   public ArrayList<String> params;
+  public int tempReg;
 
 
   public Scope(String n, String t){
     this.name = n;
+    this.tempReg = 0;
     this.retType = t;
     this.types = new HashMap<>();
     this.variables = new HashMap<>();
     this.assignments = new ArrayList<>();
     this.ops = new ArrayList<>();
     this.params = new ArrayList<>();
+  }
+
+  public String newReg(){
+      String r = "$t"+this.tempReg;
+      this.tempReg++;
+      return r;
+  }
+  public String Reg(){
+      return "$t"+this.tempReg;
   }
 
   public void addType(String name, String type, String count){
@@ -109,6 +120,7 @@ public class Scope{
     if(this.name == "main"){
       retVal += "main:\n";
     }
+
     for(String s : this.ops) {
       retVal += "\t"+s+"\n";
     }
