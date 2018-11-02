@@ -4,123 +4,92 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+
+
 public class SymbolTable {
 
-    private List<FunctionSymbol> function_table = new ArrayList<FunctionSymbol>() {{
-        add(new FunctionSymbol("printi", new ArrayList<VariableSymbol>() {{
-            add(new VariableSymbol("i", "int"));
-        }}, null));
-        add(new FunctionSymbol("flush", null, null));
-        add(new FunctionSymbol("not", new ArrayList<VariableSymbol>() {{
-            add(new VariableSymbol("i", "int"));
-        }}, "int"));
-        add(new FunctionSymbol("exit", new ArrayList<VariableSymbol>() {{
-            add(new VariableSymbol("i", "int"));
-        }}, null));
-    }};
-    private List<TypeSymbol> type_table = new ArrayList<TypeSymbol>() {{
-        add(new TypeSymbol("int", "int"));
-        add(new TypeSymbol("float", "float"));
-    }};
-    private HashMap<String, ArrayList<VariableSymbol>> scoped_var_tables = new HashMap<>();
-    private HashMap<String, TypeSymbol> constant_table = new HashMap<>();
+    private HashMap<String, ScopeTree> scopes;
+    private String current_scope;
 
-    public boolean contains_scope(String scope_name) {
-        return this.scoped_var_tables.containsKey(scope_name);
+    public SymbolTable() {
+        this.scopes = new HashMap();
+        this.scopes.put("main", new ScopeTree());
+        this.current_scope = "main";
     }
 
-    public void add_scope(String scope_name) {
-        if (this.scoped_var_tables.containsKey(scope_name)) {
+    public boolean contains_scope(String name) {
+        return this.scopes.containsKey(name);
+    }
+
+    public void add_new_scope(String name) {
+        if (this.contains_scope(name)) {
             throw new RuntimeException("Duplicate scope added to the symbol table");
         } else {
-            this.scoped_var_tables.put(scope_name, new ArrayList());
+            this.scopes.put(name, new ScopeTree());
         }
     }
 
-    public VariableSymbol get_var_from_scope(ArrayList<VariableSymbol> scope, String var_name) {
-        return scope
-            .stream()
-            .filter(v -> v.name.equals(var_name))
-            .findFirst()
-            .orElse(null);
-    }
-
-    public boolean scope_contains_var(String scope_name, String var_name) {
-        ArrayList<VariableSymbol> scope = this.scoped_var_tables.get(scope_name);
-        if (scope == null) {
-            throw new RuntimeException("scope not recognized");
+    public void set_scope(String name) {
+        if (!this.contains_scope(name)) {
+            throw new RuntimeException("Scope not recognized");
         } else {
-            return get_var_from_scope(scope, var_name) != null;
+            this.current_scope = name;
         }
     }
 
-    public String var_type_in_scope(String var_name, String scope_name) {
-        ArrayList<VariableSymbol> scope = this.scoped_var_tables.get(scope_name);
-        if (scope == null) {
-            throw new RuntimeException("scope not recognized");
+    public String current_scope() {
+        return this.current_scope;
+    }
+
+    public void enter_let_scope() {
+        this.scopes.get(this.current_scope).enterLetScope();
+    }
+
+    public void exit_let_scope() {
+        ScopeTree scope = this.scopes.get(this.current_scope);
+        if (scope.current == scope.head) {
+            throw new RuntimeException("not currently in a let scope");
         } else {
-            VariableSymbol var = this.get_var_from_scope(scope, var_name);
-            if (var == null) {
-                throw new RuntimeException("variable doesn't exist in scope");
-            } else {
-                return var.types.peek();
-            }
+            scope.popToParent();
         }
     }
 
-    public void add_var_to_scope(String var_name, String var_type, String scope_name) {
-        ArrayList<VariableSymbol> scope = this.scoped_var_tables.get(scope_name);
-        if (scope == null) {
-            throw new RuntimeException("scope not recognized");
-        } else if (this.get_var_from_scope(scope, var_name) != null) {
-            throw new RuntimeException(
-                String.format("Variable already exists: %s of type '%s'", var_name, var_type));
+    private VariableSymbol get_var(String name) {
+        return this.scopes.get(this.current_scope).get_var(name);
+    }
+
+    public boolean var_exists(String name) {
+        return this.get_var(name) != null;
+    }
+
+    public String var_type(String name) {
+        VariableSymbol var = this.get_var(name);
+        if (var == null) {
+            throw new RuntimeException("variable not found");
         } else {
-            scope.add(new VariableSymbol(var_name, var_type));
+            return var.type;
         }
     }
 
-    public void let_var_in_scope(String var_name, String var_type, String scope_name) {
-        ArrayList<VariableSymbol> scope = this.scoped_var_tables.get(scope_name);
-        if (scope == null) {
-            throw new RuntimeException("scope not recognized");
-        } else {
-            VariableSymbol var = this.get_var_from_scope(scope, var_name);
-            if (var == null) {
-                scope.add(new VariableSymbol(var_name, var_type));
-            } else {
-                var.types.push(var_type);
-            }
-        }
-    }
-
-    public void end_let_binding_in_scope(String var_name, String scope_name) {
-        ArrayList<VariableSymbol> scope = this.scoped_var_tables.get(scope_name);
-        if (scope == null) {
-            throw new RuntimeException("scope not recognized");
-        } else {
-            VariableSymbol var = this.get_var_from_scope(scope, var_name);
-            if (var == null) {
-                throw new RuntimeException("Can't end let binding on non-existent variable");
-            } else {
-                var.types.pop();
-                if (var.types.empty()) {
-                    scope.remove(var_name);
-                }
-            }
-        }
+    public void add_var(String name, String type) {
+        this.scopes.get(this.current_scope).add_var(name, type);
     }
 
     public FunctionSymbol get_function(String name) {
-        return this.function_table
-            .stream()
-            .filter(f -> f.name.equals(name))
-            .findFirst()
-            .orElse(null);
+        return this.scopes.get(this.current_scope).get_function(name);
     }
 
     public String get_function_return_type(String name) {
         FunctionSymbol fs = this.get_function(name);
+        if (fs == null) {
+            throw new RuntimeException("Can't find given function");
+        } else {
+            return fs.return_type;
+        }
+    }
+
+    public String get_scope_return_type() {
+        FunctionSymbol fs = this.get_function(this.current_scope);
         if (fs == null) {
             throw new RuntimeException("Can't find given function");
         } else {
@@ -145,53 +114,31 @@ public class SymbolTable {
     }
 
     public void add_function(String name, ArrayList<Tuple<String, String>> args, String return_type) {
-        if (this.function_exists(name)) {
-            throw new RuntimeException("Duplicate function added to symbol table");
-        } else {
-            ArrayList<VariableSymbol> args2 = args
-                .stream()
-                .map(e -> new VariableSymbol(e.left, e.right))
-                .collect(Collectors.toCollection(() -> new ArrayList()));
-            for (VariableSymbol arg : args2) {
-                if (!this.valid_type(arg.types.peek())) {
-                    throw new RuntimeException("Unknown type used in function");
-                }
-            }
-            this.function_table.add(new FunctionSymbol(name, args2, return_type));
-        }
+        this.scopes.get(this.current_scope).add_function(name, args, return_type);
     }
 
-    public TypeSymbol find_type(String type_name) {
-        return this.type_table
-            .stream()
-            .filter(f -> f.name.equals(type_name))
-            .findFirst()
-            .orElse(null);
+    public TypeSymbol get_type(String name) {
+        return this.scopes.get(this.current_scope).get_type(name);
     }
 
-    public boolean valid_type(String type_name) {
-        return this.find_type(type_name) != null;
+    public boolean valid_type(String name) {
+        return this.get_type(name) != null;
     }
 
-    public void add_type(String type_name, String structure) {
-        if (this.valid_type(type_name)) {
-            throw new RuntimeException(
-                String.format("Duplicate type added: %s with structure '%s'", type_name, structure));
-        } else {
-            this.type_table.add(new TypeSymbol(type_name, structure));
-        }
+    public void add_type(String name, String structure) {
+        this.scopes.get(this.current_scope).add_type(name, structure);
     }
 
-    public void add_constant(String const_val, String type) {
-        TypeSymbol type_s = this.find_type(type);
-        if (type_s == null) {
-            throw new RuntimeException("type not recognized");
-        } else {
-            this.constant_table.put(const_val, type_s);
-        }
-    }
-
-    public TypeSymbol get_type_of_constant(String const_val) {
-        return this.constant_table.get(const_val);
-    }
+    // public void add_constant(String const_val, String type) {
+    //     TypeSymbol type_s = this.find_type(type);
+    //     if (type_s == null) {
+    //         throw new RuntimeException("type not recognized");
+    //     } else {
+    //         this.constant_table.put(const_val, type_s);
+    //     }
+    // }
+    //
+    // public TypeSymbol get_type_of_constant(String const_val) {
+    //     return this.constant_table.get(const_val);
+    // }
 }
