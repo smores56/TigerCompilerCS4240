@@ -9,13 +9,9 @@ import org.antlr.v4.runtime.tree.*;
 class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 
     private SymbolTable symbol_table;
-	private Stack<String> scope_stack;
 
     public SemanticAnalysisVisitor() {
         this.symbol_table = new SymbolTable();
-        this.symbol_table.add_scope("main");
-        this.scope_stack = new Stack();
-        this.scope_stack.push("main");
     }
 
     public SymbolTable get_symbol_table() {
@@ -124,8 +120,11 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         } else if (first_node.equals("record")) {
             return String.format("record(%s)", visit(ctx.getChild(1)));
         } else {
-            assert symbol_table.valid_type(first_node);
-            return first_node;
+            if (!symbol_table.valid_type(first_node)) {
+                throw new RuntimeException("Type not valid: " + first_node);
+            } else {
+                return first_node;
+            }
         }
 	}
 
@@ -180,12 +179,17 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 
         String[] vars = visit(ctx.getChild(1)).split(",");
         String type = visit(ctx.getChild(3));
+        String optional_init_type = visit(ctx.getChild(4));
 
-        for (String var : vars) {
-            this.symbol_table.add_var_to_scope(var, type, this.scope_stack.peek());
+        if (optional_init_type != null && !optional_init_type.equals(type)) {
+            throw new RuntimeException("Init type does not equal variable type");
+        } else {
+            for (String var : vars) {
+                this.symbol_table.add_var(var, type);
+            }
+
+            return "";
         }
-
-        return "";
 	}
 
     /**
@@ -215,7 +219,7 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         if (ctx.getChildCount() == 0) {
             return "";
         } else {
-            return String.format(",%s%s", ctx.getChild(0).getText(), visitChildren(ctx));
+            return String.format(",%s%s", ctx.getChild(1).getText(), visit(ctx.getChild(2)));
         }
 	}
 
@@ -231,14 +235,14 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         //               | /* epsilon */ ;
 
         if (ctx.getChildCount() == 0) {
-            return "";
+            return null;
         } else {
             String constant = ctx.getChild(1).getText();
             if (constant.contains(".")) {
-                this.symbol_table.add_constant(constant, "float");
+                // this.symbol_table.add_constant(constant, "float");
                 return "float";
             } else {
-                this.symbol_table.add_constant(constant, "int");
+                // this.symbol_table.add_constant(constant, "int");
                 return "int";
             }
         }
@@ -259,15 +263,23 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         for (String pair : visit(ctx.getChild(3)).split(",")) {
             String[] split = pair.split(":");
             args.add(new Tuple<String, String>(split[0], split[1]));
+            if (!this.symbol_table.valid_type(split[1])) {
+                throw new RuntimeException("invalid type in function definition");
+            }
         }
         String return_type = visit(ctx.getChild(5));
+        if (return_type != null && !this.symbol_table.valid_type(return_type)) {
+            throw new RuntimeException("invalid type in function definition");
+        }
         this.symbol_table.add_function(name, args, return_type);
 
-        this.scope_stack.push(name);
-		String result = visit(ctx.getChild(7));
-        this.scope_stack.pop();
+        String old_scope = this.symbol_table.current_scope();
+        this.symbol_table.add_new_scope(name);
+        this.symbol_table.set_scope(name);
+		visit(ctx.getChild(7));
+        this.symbol_table.set_scope(old_scope);
 
-        return result;
+        return "";
 	}
 
     /**
@@ -284,7 +296,7 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         if (ctx.getChildCount() == 0) {
             return "";
         } else {
-            String param = ctx.getChild(0).getText();
+            String param = visit(ctx.getChild(0));
             String other_params = visit(ctx.getChild(1));
             return String.format("%s%s", param, other_params);
         }
@@ -304,9 +316,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         if (ctx.getChildCount() == 0) {
             return "";
         } else {
-            String param = ctx.getChild(1).getText();
+            String param = visit(ctx.getChild(1));
             String other_params = visit(ctx.getChild(2));
-            return String.format("%s%s", param, other_params);
+            return String.format(",%s%s", param, other_params);
         }
 	}
 
@@ -321,7 +333,7 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         // ret_type : type
         //          | /* epsilon */ ;
 
-        String type = ctx.getText();
+        String type = visit(ctx.getChild(0));
         return type.length() > 0 ? type : null;
 	}
 
@@ -335,7 +347,7 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	public String visitParam(TigerParser.ParamContext ctx) {
         // param : ID COLON type ;
 
-        return ctx.getText();
+        return String.format("%s:%s", ctx.getChild(0).getText(), visit(ctx.getChild(2)));
 	}
 
     /**
@@ -384,37 +396,48 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         String first_node = ctx.getChild(0).getText();
 
         if (first_node.equals("while")) {
-            visit(ctx.getChild(1));
-            visit(ctx.getChild(3));
+            String cond_type = visit(ctx.getChild(1));
+            if (!cond_type.equals("int")) {
+                throw new RuntimeException("conditiona expressions in while loops must be of type int");
+            } else {
+                visit(ctx.getChild(3));
+            }
         } else if (first_node.equals("for")) {
             String var = ctx.getChild(1).getText();
+            String var_type = this.symbol_table.var_type(var);
             String type = visit(ctx.getChild(3));
             String type2 = visit(ctx.getChild(5));
-            // TODO: assert type.equals(type2) ???
-            // TODO: assert (type.equals("int") || type.equals("float")) ???
-            visit(ctx.getChild(7));
+            if (!var_type.equals(type)) {
+                throw new RuntimeException("var in for loop doesn't match the bounds types");
+            } else if (!type.equals(type2)) {
+                throw new RuntimeException("types in for loop bounds don't match");
+            } else if (!type.equals("int") && !type.equals("float")) {
+                throw new RuntimeException("for loop must iterate with floats or ints");
+            } else {
+                visit(ctx.getChild(7));
+            }
         } else if (first_node.equals("break")) {
-            // do nothing?
+            // do nothing
         } else if (first_node.equals("return")) {
-            String scope = this.scope_stack.peek();
+            String scope = this.symbol_table.current_scope();
             if (scope.equals("main")) {
                 throw new RuntimeException("Can't return from main");
             } else {
-                String return_type = this.symbol_table.get_function_return_type(scope);
+                String return_type = this.symbol_table.get_scope_return_type();
                 if (return_type == null) {
                     throw new RuntimeException("Can't return from this function");
                 } else {
                     String expr_type = visit(ctx.getChild(1));
-                    // assert return_type.equals(expr_type);
+                    if (!return_type.equals(expr_type)) {
+                        throw new RuntimeException("Return value type doesn't match function return type");
+                    }
                 }
             }
         } else if (first_node.equals("let")) {
-			// Sam please love me
-
-			HashMap<String, ScopeTree> scopeTrees = new HashMap<String, ScopeTree>();
-
+            this.symbol_table.enter_let_scope();
             visit(ctx.getChild(1));
             visit(ctx.getChild(3));
+            this.symbol_table.exit_let_scope();
         } else {
             visit(ctx.getChild(0));
         }
@@ -433,11 +456,14 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         // stat_tail_a : IF expr THEN stat_seq stat_tail_b ;
 
         String expr_type = visit(ctx.getChild(1));
-        // assert expr_type.equals("int");
-        visit(ctx.getChild(3));
-        visit(ctx.getChild(4));
+        if (!expr_type.equals("int")) {
+            throw new RuntimeException("conditionals must be of type int");
+        } else {
+            visit(ctx.getChild(3));
+            visit(ctx.getChild(4));
 
-        return "";
+            return "";
+        }
 	}
 
     /**
@@ -485,38 +511,57 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         //          | LPARENS expr_list RPARENS SEMI ;
 
         String var = ctx.getParent().getChild(0).getText();
-        String var_type = this.symbol_table.var_type_in_scope(var, this.scope_stack.peek());
         String first_node = ctx.getChild(0).getText();
 
         if (first_node.equals("[")) {
+            String var_type = this.symbol_table.var_type(var);
             String expr_type = visit(ctx.getChild(4));
             String index_type = visit(ctx.getChild(1));
-            // assert index_type.equals("int");
-            // assert var_type.concat("[");
+            if (!index_type.equals("int")) {
+                throw new RuntimeException("indexing must be done with ints");
+            }
             String var_inner_type = var_type.split("[")[0];
-            // assert var_inner_type.equals(expr_type);
+            if (!var_type.contains("[")) {
+                throw new RuntimeException("indexing attempted on a non-array variable");
+            } else if (!var_inner_type.equals(expr_type)) {
+                throw new RuntimeException("array inner type doesn't match expression type");
+            }
         } else if (first_node.equals(".")) {
+            String var_type = this.symbol_table.var_type(var);
             String expr_type = visit(ctx.getChild(4));
             String field = ctx.getChild(1).getText();
-            // assert var_type.startsWith("record");
+            if (!var_type.startsWith("record")) {
+                throw new RuntimeException("can't get field from non-record type");
+            }
             String[] inner_types = var_type.substring(7, var_type.length() - 2).split(",");
             String field_type_pair = Arrays.stream(inner_types)
                 .filter(t -> t.startsWith(field))
                 .findFirst()
                 .orElse(null);
-            // assert field_type_pair != null;
+            if (field_type_pair == null) {
+                throw new RuntimeException("couldn't find field in record type");
+            }
             String field_type = field_type_pair.split(":")[1];
-            // assert field_type.equals(expr_type);
+            if (!field_type.equals(expr_type)) {
+                throw new RuntimeException("expression type didn't match record's field type");
+            }
         } else if (first_node.equals("(")) {
             String[] expr_types = visit(ctx.getChild(1)).split(";");
             ArrayList<String> expected_types = this.symbol_table.get_function_arg_types(var);
-            // assert expr_types.length() == expected_types.length();
+            if (expr_types.length != expected_types.size()) {
+                throw new RuntimeException("incorrect number of parameters supplied during function call");
+            }
             for (int i = 0; i < expr_types.length; i++) {
-                // assert expected_types[i].equals(expr_types[i]);
+                if (!expected_types.get(i).equals(expr_types[i])) {
+                    throw new RuntimeException("an argument was the wrong type for the function call");
+                }
             }
         } else {
+            String var_type = this.symbol_table.var_type(var);
             String expr_type = visit(ctx.getChild(1));
-            // assert expr_type.equals(var_type);
+            if (!expr_type.equals(var_type)) {
+                throw new RuntimeException("the variable type didn't match the expression type");
+            }
         }
 
         return "";
@@ -532,14 +577,7 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	public String visitConstant(TigerParser.ConstantContext ctx) {
         // constant : sign constant_tail ;
 
-        String constant = ctx.getText();
-        if (constant.contains(".")) {
-            this.symbol_table.add_constant(constant, "float");
-            return "float";
-        } else {
-            this.symbol_table.add_constant(constant, "int");
-            return "int";
-        }
+        return ctx.getText();
 	}
 
 	/**
@@ -584,7 +622,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         } else {
             for (int i = 0; i < num_children; i = i + 2) {
                 String type = visit(ctx.getChild(i));
-                // assert type.equals("int");
+                if (!type.equals("int")) {
+                    throw new RuntimeException("logical expressions must be of type int");
+                }
             }
             return "int";
         }
@@ -604,13 +644,14 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         if (num_children == 1) {
             return visit(ctx.getChild(0));
         } else {
-            String last_type = visit(ctx.getChild(0));
-            for (int i = 2; i < num_children; i = i + 2) {
-                String type = visit(ctx.getChild(i));
-
-                // assert type.equals("int");
+            String type1 = visit(ctx.getChild(0));
+            String type2 = visit(ctx.getChild(2));
+            if (!type1.equals(type2)) {
+                throw new RuntimeException("expression types must be equal during comparison");
+            } else if (!type1.equals("int") && !type1.equals("float")) {
+                throw new RuntimeException("expression types must be ints or floats during comparison");
             }
-            return "bool";
+            return type1;
         }
 	}
 
@@ -624,7 +665,27 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	public String visitCond_expr(TigerParser.Cond_exprContext ctx) {
         // cond_expr : term ((PLUS|MINUS) term)* ;
 
-    	return visitChildren(ctx);
+        int num_children = ctx.getChildCount();
+        if (num_children == 1) {
+            return visit(ctx.getChild(0));
+        } else {
+            String last_type = visit(ctx.getChild(0));
+            if (!last_type.equals("int") && !last_type.equals("float")) {
+                throw new RuntimeException("expression types must be ints or floats during adding/subtracting");
+            }
+            for (int i = 2; i < num_children; i += 2) {
+                String current_type = visit(ctx.getChild(i));
+                if (!current_type.equals("int") && !current_type.equals("float")) {
+                    throw new RuntimeException("expression types must be ints or floats during adding/subtracting");
+                }
+
+                if (last_type.equals("float") || current_type.equals("float")) {
+                    last_type.equals("float");
+                }
+            }
+
+            return last_type;
+        }
 	}
 
     /**
@@ -637,7 +698,27 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	public String visitTerm(TigerParser.TermContext ctx) {
         // term : factor ((MULT|DIV) factor)* ;
 
-        return visitChildren(ctx);
+        int num_children = ctx.getChildCount();
+        if (num_children == 1) {
+            return visit(ctx.getChild(0));
+        } else {
+            String last_type = visit(ctx.getChild(0));
+            if (!last_type.equals("int") && !last_type.equals("float")) {
+                throw new RuntimeException("expression types must be ints or floats during mult/div");
+            }
+            for (int i = 2; i < num_children; i += 2) {
+                String current_type = visit(ctx.getChild(i));
+                if (!current_type.equals("int") && !current_type.equals("float")) {
+                    throw new RuntimeException("expression types must be ints or floats during mult/div");
+                }
+
+                if (last_type.equals("float") || current_type.equals("float")) {
+                    last_type.equals("float");
+                }
+            }
+
+            return last_type;
+        }
 	}
 
     /**
@@ -650,7 +731,27 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	public String visitFactor(TigerParser.FactorContext ctx) {
         // factor : atom (POWER atom)* ;
 
-    	return visitChildren(ctx);
+        int num_children = ctx.getChildCount();
+        if (num_children == 1) {
+            return visit(ctx.getChild(0));
+        } else {
+            String last_type = visit(ctx.getChild(num_children - 1));
+            if (!last_type.equals("int") && !last_type.equals("float")) {
+                throw new RuntimeException("expression types must be ints or floats during exponentiation");
+            }
+            for (int i = num_children - 3; i >= 0; i -= 2) {
+                String current_type = visit(ctx.getChild(i));
+                if (!current_type.equals("int") && !current_type.equals("float")) {
+                    throw new RuntimeException("expression types must be ints or floats during exponentiation");
+                }
+
+                if (last_type.equals("float") || current_type.equals("float")) {
+                    last_type.equals("float");
+                }
+            }
+
+            return last_type;
+        }
 	}
 
     /**
@@ -665,7 +766,14 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         //      | LPARENS expr RPARENS
         //      | ID atom_tail ;
 
-    	return visitChildren(ctx);
+        String left_token = ctx.getChild(0).getText();
+        if (left_token.equals("(")) {
+            return visit(ctx.getChild(1));
+        } else if (ctx.getChildCount() == 1) {
+            return ctx.getChild(0).getText().contains(".") ? "float" : "int";
+        } else {
+            return visit(ctx.getChild(1));
+        }
 	}
 
     /**
@@ -681,7 +789,54 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         //           | DOT ID
         //           | /* epsilon */ ;
 
-    	return visitChildren(ctx);
+        String var = ctx.getParent().getChild(0).getText();
+
+        if (ctx.getChildCount() > 0) {
+            String first_node = ctx.getChild(0).getText();
+            if (first_node.equals("[")) {
+                String var_type = this.symbol_table.var_type(var);
+                String index_type = visit(ctx.getChild(1));
+                if (!index_type.equals("int")) {
+                    throw new RuntimeException("indexing must be done with ints");
+                }
+                String var_inner_type = var_type.split("[")[0];
+                if (!var_type.contains("[")) {
+                    throw new RuntimeException("indexing attempted on a non-array variable");
+                } else {
+                    return var_inner_type;
+                }
+            } else if (first_node.equals(".")) {
+                String var_type = this.symbol_table.var_type(var);
+                String field = ctx.getChild(1).getText();
+                if (!var_type.startsWith("record")) {
+                    throw new RuntimeException("can't get field from non-record type");
+                }
+                String[] inner_types = var_type.substring(7, var_type.length() - 2).split(",");
+                String field_type_pair = Arrays.stream(inner_types)
+                    .filter(t -> t.startsWith(field))
+                    .findFirst()
+                    .orElse(null);
+                if (field_type_pair == null) {
+                    throw new RuntimeException("couldn't find field in record type");
+                } else {
+                    return field_type_pair.split(":")[1]; // field type
+                }
+            } else { // (first_node.equals("("))
+                String[] expr_types = visit(ctx.getChild(1)).split(";");
+                ArrayList<String> expected_types = this.symbol_table.get_function_arg_types(var);
+                if (expr_types.length != expected_types.size()) {
+                    throw new RuntimeException("incorrect number of parameters supplied during function call");
+                }
+                for (int i = 0; i < expr_types.length; i++) {
+                    if (!expected_types.get(i).equals(expr_types[i])) {
+                        throw new RuntimeException("an argument was the wrong type for the function call");
+                    }
+                }
+                return this.symbol_table.get_function_return_type(var);
+            }
+        } else {
+            return this.symbol_table.var_type(var);
+        }
 	}
 
     /**
@@ -695,7 +850,11 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         // expr_list : expr expr_list_tail
         //           | /* epsilon */ ;
 
-		return visitChildren(ctx);
+        if (ctx.getChildCount() == 0) {
+            return "";
+        } else {
+            return String.format("%s%s", visit(ctx.getChild(0)), visit(ctx.getChild(1)));
+        }
 	}
 
 	/**
@@ -709,7 +868,11 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         // expr_list_tail : COMMA expr expr_list_tail
         //                | /* epsilon */ ;
 
-    	return visitChildren(ctx);
+        if (ctx.getChildCount() == 0) {
+            return "";
+        } else {
+            return String.format(";%s%s", visit(ctx.getChild(1)), visit(ctx.getChild(2)));
+        }
 	}
 
 }
