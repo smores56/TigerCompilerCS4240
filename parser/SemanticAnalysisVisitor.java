@@ -492,60 +492,26 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
 	 */
 	@Override
 	public String visitAssign_or_func(TigerParser.Assign_or_funcContext ctx) {
-        // assign_or_func : ID aof_tail ;
+        // assign_or_func : ID aof_tail_a ;
 
         return visitChildren(ctx);
 	}
 
-	/**
+    /**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override
-	public String visitAof_tail(TigerParser.Aof_tailContext ctx) {
-        // aof_tail : LBRACKET expr RBRACKET ASSIGN expr SEMI
-        //          | DOT ID ASSIGN expr SEMI
-        //          | ASSIGN expr SEMI
-        //          | LPARENS expr_list RPARENS SEMI ;
+    public String visitAof_tail_a(TigerParser.Aof_tail_aContext ctx) {
+        // aof_tail_a : assign aof_tail_b expr SEMI
+        //            | LPARENS expr_list RPARENS SEMI ;
 
         String var = ctx.getParent().getChild(0).getText();
         String first_node = ctx.getChild(0).getText();
 
-        if (first_node.equals("[")) {
-            String var_type = this.symbol_table.var_type(var);
-            String expr_type = visit(ctx.getChild(4));
-            String index_type = visit(ctx.getChild(1));
-            if (!index_type.equals("int")) {
-                throw new RuntimeException("indexing must be done with ints");
-            }
-            String var_inner_type = var_type.split("[")[0];
-            if (!var_type.contains("[")) {
-                throw new RuntimeException("indexing attempted on a non-array variable");
-            } else if (!var_inner_type.equals(expr_type)) {
-                throw new RuntimeException("array inner type doesn't match expression type");
-            }
-        } else if (first_node.equals(".")) {
-            String var_type = this.symbol_table.var_type(var);
-            String expr_type = visit(ctx.getChild(4));
-            String field = ctx.getChild(1).getText();
-            if (!var_type.startsWith("record")) {
-                throw new RuntimeException("can't get field from non-record type");
-            }
-            String[] inner_types = var_type.substring(7, var_type.length() - 2).split(",");
-            String field_type_pair = Arrays.stream(inner_types)
-                .filter(t -> t.startsWith(field))
-                .findFirst()
-                .orElse(null);
-            if (field_type_pair == null) {
-                throw new RuntimeException("couldn't find field in record type");
-            }
-            String field_type = field_type_pair.split(":")[1];
-            if (!field_type.equals(expr_type)) {
-                throw new RuntimeException("expression type didn't match record's field type");
-            }
-        } else if (first_node.equals("(")) {
+        if (first_node.equals("(")) {
             String[] expr_types = visit(ctx.getChild(1)).split(";");
             ArrayList<String> expected_types = this.symbol_table.get_function_arg_types(var);
             if (expr_types.length != expected_types.size()) {
@@ -557,15 +523,92 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
                 }
             }
         } else {
-            String var_type = this.symbol_table.var_type(var);
-            String expr_type = visit(ctx.getChild(1));
-            if (!expr_type.equals(var_type)) {
-                throw new RuntimeException("the variable type didn't match the expression type");
+            String expr_type = visit(ctx.getChild(2));
+            String[] assigns = String.format(
+                "%s%s%s", var, visit(ctx.getChild(0)), visit(ctx.getChild(1))).split(";");
+            for (String assign : assigns) {
+                if (assign.contains("[")) {
+                    String var_type = this.symbol_table.var_type(assign.split("[")[0]);
+                    String index_type = assign.split("[")[1].split("]")[0];
+                    if (!index_type.equals("int")) {
+                        throw new RuntimeException("indexing must be done with ints");
+                    }
+                    String var_inner_type = var_type.split("[")[0];
+                    if (!var_type.contains("[")) {
+                        throw new RuntimeException("indexing attempted on a non-array variable");
+                    } else if (!var_inner_type.equals(expr_type)) {
+                        throw new RuntimeException("array inner type doesn't match expression type");
+                    }
+                } else if (assign.contains(".")) {
+                    String var_type = this.symbol_table.var_type(assign.split(".")[0]);
+                    String field = assign.split(".")[1];
+                    if (!var_type.startsWith("record")) {
+                        throw new RuntimeException("can't get field from non-record type");
+                    }
+                    String[] inner_types = var_type.substring(7, var_type.length() - 2).split(",");
+                    String field_type_pair = Arrays.stream(inner_types)
+                        .filter(t -> t.startsWith(field))
+                        .findFirst()
+                        .orElse(null);
+                    if (field_type_pair == null) {
+                        throw new RuntimeException("couldn't find field in record type");
+                    }
+                    String field_type = field_type_pair.split(":")[1];
+                    if (!field_type.equals(expr_type)) {
+                        throw new RuntimeException("expression type didn't match record's field type");
+                    }
+                } else {
+                    String var_type = this.symbol_table.var_type(assign);
+                    if (!expr_type.equals(var_type)) {
+                        throw new RuntimeException("the variable type didn't match the expression type");
+                    }
+                }
             }
         }
 
-        return "";
-	}
+        return visitChildren(ctx);
+    }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override
+    public String visitAof_tail_b(TigerParser.Aof_tail_bContext ctx) {
+        // aof_tail_b : ID assign aof_tail_b
+        //            | /* epsilon */ ;
+
+        if (ctx.getChildCount() > 0) {
+            return String.format(
+                ";%s%s%s", ctx.getChild(0).getText(), visit(ctx.getChild(1)), visit(ctx.getChild(2)));
+        } else {
+            return "";
+        }
+    }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override
+    public String visitAssign(TigerParser.AssignContext ctx) {
+        // assign : LBRACKET expr RBRACKET ASSIGN
+        //        | DOT ID ASSIGN
+        //        | ASSIGN ;
+
+        String first_node = ctx.getChild(0).getText();
+        if (first_node.equals("[")) {
+            return String.format("[%s]", visit(ctx.getChild(1)));
+        } else if (first_node.equals(".")) {
+            return String.format(".%s", ctx.getChild(1).getText());
+        } else {
+            return "";
+        }
+    }
 
     /**
 	 * {@inheritDoc}

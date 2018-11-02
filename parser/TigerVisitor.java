@@ -154,11 +154,23 @@ public interface TigerVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAssign_or_func(TigerParser.Assign_or_funcContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link TigerParser#aof_tail}.
+	 * Visit a parse tree produced by {@link TigerParser#aof_tail_a}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitAof_tail(TigerParser.Aof_tailContext ctx);
+	T visitAof_tail_a(TigerParser.Aof_tail_aContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link TigerParser#aof_tail_b}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAof_tail_b(TigerParser.Aof_tail_bContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link TigerParser#assign}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAssign(TigerParser.AssignContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link TigerParser#constant}.
 	 * @param ctx the parse tree

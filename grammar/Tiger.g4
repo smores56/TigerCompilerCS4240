@@ -109,11 +109,14 @@ stat_tail_a : IF expr THEN stat_seq stat_tail_b ;
 stat_tail_b : ENDIF SEMI
             | ELSE stat_seq ENDIF SEMI ;
 
-assign_or_func : ID aof_tail ;
-aof_tail : LBRACKET expr RBRACKET ASSIGN expr SEMI
-         | DOT ID ASSIGN expr SEMI
-         | ASSIGN expr SEMI
-         | LPARENS expr_list RPARENS SEMI ;
+assign_or_func : ID aof_tail_a ;
+aof_tail_a : assign aof_tail_b expr SEMI
+           | LPARENS expr_list RPARENS SEMI ;
+aof_tail_b : ID assign aof_tail_b
+           | /* epsilon */ ;
+assign : LBRACKET expr RBRACKET ASSIGN
+       | DOT ID ASSIGN
+       | ASSIGN ;
 
 constant : sign constant_tail ;
 sign : PLUS
