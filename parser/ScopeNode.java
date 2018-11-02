@@ -26,7 +26,7 @@ public class ScopeNode {
     }
 
 
-    public addScope(ScopeNode child) {
+    public void addScope(ScopeNode child) {
         this.children.add(child);
     }
 

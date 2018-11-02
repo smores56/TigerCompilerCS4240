@@ -6,39 +6,6 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 public class SymbolTable {
 
-    public class FunctionSymbol {
-        public String name;
-        public ArrayList<VariableSymbol> args;
-        public String return_type;
-
-        public FunctionSymbol(String name, ArrayList<VariableSymbol> args, String return_type) {
-            this.name = name;
-            this.args = args;
-            this.return_type = return_type;
-        }
-    }
-
-    public class VariableSymbol {
-        public String name;
-        public Stack<String> types;
-
-        public VariableSymbol(String name, String type) {
-            this.name = name;
-            this.types = new Stack();
-            this.types.push(type);
-        }
-    }
-
-    public class TypeSymbol {
-        public String name;
-        public String structure;
-
-        public TypeSymbol(String name, String structure) {
-            this.name = name;
-            this.structure = structure;
-        }
-    }
-
     private List<FunctionSymbol> function_table = new ArrayList<FunctionSymbol>() {{
         add(new FunctionSymbol("printi", new ArrayList<VariableSymbol>() {{
             add(new VariableSymbol("i", "int"));
