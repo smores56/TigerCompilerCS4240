@@ -397,7 +397,23 @@ return visitChildren(ctx);
      */
     @Override
     public String visitLogic_expr(TigerParser.Logic_exprContext ctx) {
-return visitChildren(ctx);
+        String dReg = "";
+        String sReg = visit(ctx.getChild(0));
+        if(ctx.getChildCount() > 1){
+        for(int i = 1; i < ctx.getChildCount() - 1; i += 2){
+            String c = visit(ctx.getChild(i+1));
+        dReg = this.scopes.peek().newReg();
+            String op = (ctx.getChild(i).getText() == "-") ? "sub" : "add";
+            this.scopes.peek().addOp(op+", "+sReg+", "+c+", "+dReg);
+            sReg = dReg;
+        }
+    }
+    else{
+        String c = visit(ctx.getChild(0));
+    dReg = this.scopes.peek().newReg();
+        this.scopes.peek().addOp("assign, "+dReg+", "+c);
+    }
+    return dReg;
     }
 
     /**
@@ -490,7 +506,13 @@ return visitChildren(ctx);
     @Override
     public String visitAtom(TigerParser.AtomContext ctx) {
         if(ctx.constant() != null){
-        return visitChildren(ctx);
+        return ctx.getText();
+        }
+        else if(ctx.LPARENS() != null){
+            return visit(ctx.getChild(1));
+        }
+        else {
+            
         }
         return visitChildren(ctx);
     }
@@ -503,7 +525,15 @@ return visitChildren(ctx);
      */
     @Override
     public String visitAtom_tail(TigerParser.Atom_tailContext ctx) {
-        return visitChildren(ctx);
+        if(ctx.LPARENS() != null){
+            return visit(ctx.getChild(1));
+        }
+        else if(ctx.LBRACKET() != null){
+            return visit(ctx.getChild(1));
+        }
+        else {
+            return ctx.getText();
+        }
     }
 
     /**

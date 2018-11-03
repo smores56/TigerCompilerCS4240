@@ -9,11 +9,13 @@ public class Scope{
   public ArrayList<String> ops;
   public ArrayList<String> params;
   public int tempReg;
+  public int loopReg;
 
 
   public Scope(String n, String t){
     this.name = n;
     this.tempReg = 0;
+    this.loopReg = 0;
     this.retType = t;
     this.types = new HashMap<>();
     this.variables = new HashMap<>();
@@ -47,6 +49,13 @@ public class Scope{
   public void addParam(String name, String type){
     this.variables.put(name, type);
     this.params.add(name);
+  }
+
+  public String addLoop(){
+      String s = "label_"+this.loopReg;
+      this.loopReg++;
+      this.ops.add(s+":");
+      return s;
   }
 
   public void addAssignment(String var, String val){
@@ -122,7 +131,8 @@ public class Scope{
     }
 
     for(String s : this.ops) {
-      retVal += "\t"+s+"\n";
+        String tab = (s.startsWith("label_")) ? "" : "\t";
+      retVal += tab+s+"\n";
     }
 
     retVal += "#end_function "+this.name+"\n";
