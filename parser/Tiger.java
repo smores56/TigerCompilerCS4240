@@ -350,8 +350,7 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
     @Override
     public String visitAssign_or_func(TigerParser.Assign_or_funcContext ctx) {
         String r = visit(ctx.getChild(1));
-        this.scopes.peek().addVariable(ctx.)
-        this.scopes.peek().addOp("assign, "+ctx.get)
+        return r;
     }
 
     /**
