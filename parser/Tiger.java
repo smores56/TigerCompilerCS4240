@@ -421,6 +421,7 @@ return visitChildren(ctx);
     public String visitLogic_expr(TigerParser.Logic_exprContext ctx) {
         String dReg = "";
         String sReg = visit(ctx.getChild(0));
+        dReg = sReg;
         if(ctx.getChildCount() > 1){
         for(int i = 1; i < ctx.getChildCount() - 1; i += 2){
             String c = visit(ctx.getChild(i+1));
@@ -431,9 +432,11 @@ return visitChildren(ctx);
         }
     }
     else{
+        /*
         String c = visit(ctx.getChild(0));
     dReg = this.scopes.peek().newReg();
         this.scopes.peek().addOp("assign, "+dReg+", "+c);
+        */
     }
     return dReg;
     }
@@ -448,6 +451,7 @@ return visitChildren(ctx);
     public String visitCond_expr(TigerParser.Cond_exprContext ctx) {
         String dReg = "";
         String sReg = visit(ctx.getChild(0));
+        dReg = sReg;
         if(ctx.getChildCount() > 1){
         for(int i = 1; i < ctx.getChildCount() - 1; i += 2){
             String c = visit(ctx.getChild(i+1));
@@ -457,10 +461,11 @@ return visitChildren(ctx);
             sReg = dReg;
         }
     }
-    else{
+    else{/*
         String c = visit(ctx.getChild(0));
     dReg = this.scopes.peek().newReg();
         this.scopes.peek().addOp("assign, "+dReg+", "+c);
+        */
     }
     return dReg;
     }
@@ -475,6 +480,7 @@ return visitChildren(ctx);
     public String visitTerm(TigerParser.TermContext ctx) {
         String dReg = "";
         String sReg = visit(ctx.getChild(0));
+        dReg = sReg;
         if(ctx.getChildCount() > 1){
         for(int i = 1; i < ctx.getChildCount() - 1; i += 2){
             String c = visit(ctx.getChild(i+1));
@@ -484,10 +490,11 @@ return visitChildren(ctx);
             sReg = dReg;
         }
     }
-    else{
+    else{/*
         String c = visit(ctx.getChild(0));
     dReg = this.scopes.peek().newReg();
         this.scopes.peek().addOp("assign, "+dReg+", "+c);
+        */
     }
     return dReg;
     }
@@ -502,6 +509,7 @@ return visitChildren(ctx);
     public String visitFactor(TigerParser.FactorContext ctx) {
         String dReg = "";
         String sReg = visit(ctx.getChild(0));
+        dReg = sReg;
         if(ctx.getChildCount() > 1){
         for(int i = 1; i < ctx.getChildCount() - 1; i += 2){
             String c = visit(ctx.getChild(i+1));
@@ -512,9 +520,11 @@ return visitChildren(ctx);
         }
     }
     else{
+        /*
         String c = visit(ctx.getChild(0));
     dReg = this.scopes.peek().newReg();
         this.scopes.peek().addOp("assign, "+dReg+", "+c);
+        */
     }
     return dReg;
     }
