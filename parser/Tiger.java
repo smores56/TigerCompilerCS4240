@@ -335,13 +335,35 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override
-    public String visitAof_tail(TigerParser.Aof_tailContext ctx) {
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override
+    public String visitAof_tail_a(TigerParser.Aof_tail_aContext ctx) {
+        return visitChildren(ctx);
+    }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override
+    public String visitAof_tail_b(TigerParser.Aof_tail_bContext ctx) {
+        return visitChildren(ctx);
+    }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override
+    public String visitAssign(TigerParser.AssignContext ctx) {
         return visitChildren(ctx);
     }
 
@@ -353,7 +375,7 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
      */
     @Override
     public String visitConstant(TigerParser.ConstantContext ctx) {
-return ctx.getText();
+        return ctx.getText();
     }
 
     /**
