@@ -298,6 +298,24 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
      */
     @Override
     public String visitStat(TigerParser.StatContext ctx) {
+        if(ctx.FOR() != null){
+            this.scopes.peek().addVariable(ctx.getChild(1).getText(),"int");
+            String exp1 = visit(ctx.getChild(3));
+            String exp2 = visit(ctx.getChild(5));
+            this.scopes.peek().addOp("assign, "+ctx.getChild(1).getText()+", "+exp1);
+            String l = this.scopes.peek().addLoop();
+            int t = Integer.parseInt(l.substring(l.length()-1,l.length()));
+            String lN = l.substring(0,l.length()-1)+(t+1);
+            this.scopes.peek().addOp("brgt, "+ctx.getChild(1).getText()+", "+exp2+", "+lN);
+            String s = visit(ctx.getChild(7));
+            this.scopes.peek().addOp("add, 1, "+ctx.getChild(1).getText()+", "+ctx.getChild(1).getText());
+            this.scopes.peek().addOp("goto, "+l+", , ");
+            this.scopes.peek().addLoop();
+
+
+
+        }
+
         return visitChildren(ctx);
     }
 
@@ -331,7 +349,9 @@ class IRGenVisitor extends TigerBaseVisitor<String> {
      */
     @Override
     public String visitAssign_or_func(TigerParser.Assign_or_funcContext ctx) {
-        return visitChildren(ctx);
+        String r = visit(ctx.getChild(1));
+        this.scopes.peek().addVariable(ctx.)
+        this.scopes.peek().addOp("assign, "+ctx.get)
     }
 
     /**

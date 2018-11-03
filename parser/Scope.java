@@ -25,7 +25,11 @@ public class Scope{
   }
 
   public String newReg(){
+      return this.newReg("int");
+  }
+  public String newReg(String type){
       String r = "$t"+this.tempReg;
+      this.addVariable(r,type);
       this.tempReg++;
       return r;
   }
