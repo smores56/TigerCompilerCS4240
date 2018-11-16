@@ -4,9 +4,7 @@ import java.util.HashSet;
 import java.util.Arrays;
 import java.io.BufferedReader;
 import java.io.FileReader;
-
 import instructions.*;
-
 
 public class Codegen {
 
@@ -14,16 +12,42 @@ public class Codegen {
         if (args.length != 1) {
             System.out.println("Correct usage: Codegen <IR filename>");
         } else {
-            Instruction[] instructions = (Instruction[]) Codegen
-                .read_file(args[0])
-                .stream()
-                .map(l -> Codegen.parse_instruction(l))
-                .collect(Collectors.toList())
-                .toArray();
+            ArrayList<String> lines = Codegen.read_file(args[0]);
+            if (lines.size() == 0) {
+                throw new RuntimeException("");
+            }
 
-            ControlFlow cf = new ControlFlow(instructions);
-            cf.calculate_livenesses();
-            cf.print_debug();
+            ArrayList<FunctionIR> functions = new ArrayList<>();
+            String line = lines.remove(0);
+            while (line != null) {
+                if (line.startsWith("#start_function")) {
+                    String name = line.split(" ")[1];
+                    String return_type = lines.remove(0).split(" ")[0];
+                    String ints_line = lines.remove(0);
+                    String[] ints = ints_line.substring(10, ints_line.length()).split(", *");
+                    String floats_line = lines.remove(0);
+                    String[] floats = floats_line.substring(12, floats_line.length()).split(", *");
+
+                    ArrayList<Instruction> instructions = new ArrayList<>();
+                    line = lines.remove(0);
+                    while (!line.startsWith("#end_function")) {
+                        instructions.add(Codegen.parse_instruction(line));
+                        line = lines.remove(0);
+                    }
+
+                    functions.add(new FunctionIR(name, return_type, ints, floats,
+                        instructions.toArray(new Instruction[instructions.size()])));
+                } else {
+                    line = lines.size() == 0 ? null : lines.remove(0);
+                }
+            }
+
+            for (FunctionIR f : functions) {
+                System.out.println(String.format("\nRunning analysis for function \"%s\":", f.name()));
+                System.out.println("------------------------------");
+                f.run();
+                System.out.println("------------------------------\n");
+            }
         }
     }
 
@@ -49,13 +73,9 @@ public class Codegen {
         String inst = instruction.trim();
         if (inst.charAt(inst.length() - 1) == ':') {
             return new LabelInst(
-                new String[]{inst.substring(0, inst.length() - 2)});
+                new String[]{inst.substring(0, inst.length() - 1)});
         } else {
-            String[] args = (String[]) Arrays
-                .stream(inst.split(",\\w*"))
-                .filter(i -> i.length() > 0)
-                .collect(Collectors.toList())
-                .toArray();
+            String[] args = inst.split(", *");
 
             switch (args[0]) {
                 case "add":
@@ -105,7 +125,7 @@ public class Codegen {
                 case "sub":
                     return (Instruction) new SubInst(args);
                 default:
-                    throw new RuntimeException("Invalid instruction provided");
+                    throw new RuntimeException("Invalid instruction provided: " + instruction);
             }
         }
     }

@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -43,7 +44,7 @@ public class ControlFlow {
         ArrayList<Integer> indices = new ArrayList<>();
         indices.add(0);
 
-        for (int i = 0; i < instructions.length; i++) {
+        for (int i = 0; i < instructions.length - 1; i++) {
             Instruction inst = instructions[i];
             if (inst instanceof BranchInst) {
                 String label = ((BranchInst) inst).get_dest();
@@ -58,7 +59,7 @@ public class ControlFlow {
             }
         }
 
-        indices.sort((a, b) -> b - a);
+        indices.sort((a, b) -> a - b);
         return new ArrayList<>(indices.stream().distinct().collect(Collectors.toList()));
     }
 
@@ -85,12 +86,12 @@ public class ControlFlow {
     }
 
     public void calculate_livenesses() {
-        HashSet<String>[][] curr_livenesses = (HashSet<String>[][]) blocks
+        List<HashSet<String>[]> curr_livenesses = blocks
             .stream()
             .map(b -> b.get_livenesses())
-            .collect(Collectors.toList())
-            .toArray();
-        HashSet<String>[][] old_livenesses = null;
+            .collect(Collectors.toList());
+        List<HashSet<String>[]> old_livenesses = null;
+
         while (!curr_livenesses.equals(old_livenesses)) {
             old_livenesses = curr_livenesses;
 
@@ -105,11 +106,10 @@ public class ControlFlow {
                 }
             }
 
-            curr_livenesses = (HashSet<String>[][]) blocks
+            curr_livenesses = blocks
                 .stream()
                 .map(b -> b.get_livenesses())
-                .collect(Collectors.toList())
-                .toArray();
+                .collect(Collectors.toList());
         }
     }
 
