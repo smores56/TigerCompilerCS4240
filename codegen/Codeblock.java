@@ -13,6 +13,9 @@ public class Codeblock {
     public Codeblock(Instruction[] instructions) {
         this.instructions = instructions;
         this.livenesses = new HashSet[instructions.length + 1];
+        for (int i = 0; i < this.livenesses.length; i++) {
+            this.livenesses[i] = new HashSet<>();
+        }
     }
 
     public Set<String> get_block_liveness() {
