@@ -44,4 +44,8 @@ public class CallInst implements Instruction {
     public Set<String> var_def() {
         return new HashSet<String>();
     }
+
+    public String debug() {
+        return String.format("%s(%s);", this.func, String.join(", ", this.args));
+    }
 }

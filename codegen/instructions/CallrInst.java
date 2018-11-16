@@ -47,4 +47,8 @@ public class CallrInst implements Instruction {
     public Set<String> var_def() {
         return new HashSet<String>(Arrays.asList(this.dest));
     }
+
+    public String debug() {
+        return String.format("%s := %s(%s);", this.dest, this.func, String.join(", ", this.args));
+    }
 }

@@ -16,4 +16,8 @@ public class BrgeqInst extends BinopInst implements Instruction {
     public String type() {
         return "brgeq";
     }
+
+    public String debug() {
+        return String.format("if (%s < %s) goto %s;", this.left, this.right, this.dest);
+    }
 }

@@ -16,4 +16,8 @@ public class OrInst extends BinopInst implements Instruction {
     public String type() {
         return "or";
     }
+
+    public String debug() {
+        return String.format("%s := %s | %s;", this.dest, this.left, this.right);
+    }
 }

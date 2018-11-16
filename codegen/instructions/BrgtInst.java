@@ -16,4 +16,8 @@ public class BrgtInst extends BinopInst implements Instruction {
     public String type() {
         return "brgt";
     }
+
+    public String debug() {
+        return String.format("if (%s <= %s) goto %s;", this.left, this.right, this.dest);
+    }
 }

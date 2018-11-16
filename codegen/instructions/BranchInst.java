@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Set;
 
 abstract public class BranchInst {
-    private String left;
-    private String right;
-    private String dest;
+    protected String left;
+    protected String right;
+    protected String dest;
 
     public BranchInst(String[] args) {
         this.left = args[1];

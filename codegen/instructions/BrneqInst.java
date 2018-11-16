@@ -16,4 +16,8 @@ public class BrneqInst extends BinopInst implements Instruction {
     public String type() {
         return "brneq";
     }
+
+    public String debug() {
+        return String.format("if (%s = %s) goto %s;", this.left, this.right, this.dest);
+    }
 }

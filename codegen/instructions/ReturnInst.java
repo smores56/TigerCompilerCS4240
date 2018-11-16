@@ -34,4 +34,8 @@ public class ReturnInst implements Instruction {
     public Set<String> var_def() {
         return new HashSet<String>();
     }
+
+    public String debug() {
+        return String.format("return %s;", this.ret_val);
+    }
 }

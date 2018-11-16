@@ -32,4 +32,8 @@ public class LabelInst implements Instruction {
     public String get_name() {
         return this.name;
     }
+
+    public String debug() {
+        return String.format("%s:", this.name);
+    }
 }

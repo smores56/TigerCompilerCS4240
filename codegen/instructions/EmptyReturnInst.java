@@ -26,4 +26,8 @@ public class EmptyReturnInst implements Instruction {
     public Set<String> var_def() {
         return new HashSet<String>();
     }
+
+    public String debug() {
+        return "return;";
+    }
 }

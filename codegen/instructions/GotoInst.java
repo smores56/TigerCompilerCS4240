@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 // goto: "break", "goto, after_loop, ,"
-public class GotoInst {
+public class GotoInst implements Instruction {
     private String dest;
 
     public GotoInst(String[] args) {
@@ -32,5 +32,9 @@ public class GotoInst {
 
     public String get_dest() {
         return this.dest;
+    }
+
+    public String debug() {
+        return String.format("goto %s;", this.dest);
     }
 }

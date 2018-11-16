@@ -33,4 +33,8 @@ public class ArrayLoadInst implements Instruction {
     public Set<String> var_def() {
         return new HashSet<>(Arrays.asList(this.dest));
     }
+
+    public String debug() {
+        return String.format("%s := %s[%s];", this.dest, this.arr_name, this.index);
+    }
 }

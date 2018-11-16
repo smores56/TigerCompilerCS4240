@@ -16,4 +16,8 @@ public class AddInst extends BinopInst implements Instruction {
     public String type() {
         return "add";
     }
+
+    public String debug() {
+        return String.format("%s := %s + %s;", this.dest, this.left, this.right);
+    }
 }

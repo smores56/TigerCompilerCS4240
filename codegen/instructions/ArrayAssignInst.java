@@ -33,4 +33,8 @@ public class ArrayAssignInst implements Instruction {
     public Set<String> var_def() {
         return new HashSet<String>(Arrays.asList(this.arr_name));
     }
+
+    public String debug() {
+        return String.format("%s[] (size %s) := %s;", this.arr_name, this.arr_size, this.arr_val);
+    }
 }
