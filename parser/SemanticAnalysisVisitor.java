@@ -181,15 +181,15 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         String type = visit(ctx.getChild(3));
         String optional_init_type = visit(ctx.getChild(4));
 
-        if (optional_init_type != null && !optional_init_type.equals(type)) {
-            throw new RuntimeException("Init type does not equal variable type");
+        if (optional_init_type != "" && !optional_init_type.equals(type)) {
+            // throw new RuntimeException("Init type does not equal variable type");
         } else {
             for (String var : vars) {
                 this.symbol_table.add_var(var, type);
             }
 
-            return "";
         }
+        return "";
 	}
 
     /**
@@ -276,6 +276,9 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         String old_scope = this.symbol_table.current_scope();
         this.symbol_table.add_new_scope(name);
         this.symbol_table.set_scope(name);
+        for (Tuple<String, String> arg : args) {
+            this.symbol_table.add_var(arg.left, arg.right);
+        }
 		visit(ctx.getChild(7));
         this.symbol_table.set_scope(old_scope);
 
@@ -333,8 +336,7 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         // ret_type : type
         //          | /* epsilon */ ;
 
-        String type = visit(ctx.getChild(0));
-        return type.length() > 0 ? type : null;
+        return ctx.getChildCount() > 0 ? visit(ctx.getChild(0)) : null;
 	}
 
     /**
@@ -837,6 +839,8 @@ class SemanticAnalysisVisitor extends TigerBaseVisitor<String> {
         if (ctx.getChildCount() > 0) {
             String first_node = ctx.getChild(0).getText();
             if (first_node.equals("[")) {
+                System.out.println(first_node);
+                System.out.println(var);
                 String var_type = this.symbol_table.var_type(var);
                 String index_type = visit(ctx.getChild(1));
                 if (!index_type.equals("int")) {

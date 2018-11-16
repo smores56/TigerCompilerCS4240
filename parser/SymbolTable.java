@@ -55,6 +55,7 @@ public class SymbolTable {
     }
 
     private VariableSymbol get_var(String name) {
+        System.out.println("scope: " + this.current_scope);
         return this.scopes.get(this.current_scope).get_var(name);
     }
 
@@ -65,6 +66,7 @@ public class SymbolTable {
     public String var_type(String name) {
         VariableSymbol var = this.get_var(name);
         if (var == null) {
+            System.out.println(name);
             throw new RuntimeException("variable not found");
         } else {
             return var.type;
@@ -104,7 +106,7 @@ public class SymbolTable {
         } else {
             return fs.args
                 .stream()
-                .map(t -> t.name)
+                .map(t -> t.type)
                 .collect(Collectors.toCollection(() -> new ArrayList<String>()));
         }
     }
