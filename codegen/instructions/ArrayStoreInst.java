@@ -9,12 +9,12 @@ import java.util.Set;
 // array_store: "arr[0] := a", "array_store, arr, 0, a"
 public class ArrayStoreInst implements Instruction {
     private String arr_name;
-    private int index;
+    private String index;
     private String rvalue;
 
     public ArrayStoreInst(String[] args) {
         this.arr_name = args[1];
-        this.index = Integer.parseInt(args[2]);
+        this.index = args[2];
         this.rvalue = args[3];
     }
 
@@ -23,16 +23,18 @@ public class ArrayStoreInst implements Instruction {
     }
 
     public List<String> params() {
-        return Arrays.asList(this.arr_name, Integer.toString(this.index), this.rvalue);
+        return Arrays.asList(this.arr_name, this.index, this.rvalue);
     }
 
     public Set<String> var_use() {
-        try {
-            double d = Double.parseDouble(this.rvalue);
-        } catch(NumberFormatException e) {
-            return new HashSet<>(Arrays.asList(this.rvalue));
+        HashSet<String> uses = new HashSet<>();
+        for (String var : new String[]{this.index, this.rvalue}) {
+            if (var.matches("-?\\d+(\\.\\d+)?")) {
+                uses.add(var);
+            }
         }
-        return new HashSet<>();
+
+        return uses;
     }
 
     public Set<String> var_def() {

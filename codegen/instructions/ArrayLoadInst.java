@@ -10,12 +10,12 @@ import java.util.Set;
 public class ArrayLoadInst implements Instruction {
     private String dest;
     private String arr_name;
-    private int index;
+    private String index;
 
     public ArrayLoadInst(String[] args) {
         this.dest = args[1];
         this.arr_name = args[2];
-        this.index = Integer.parseInt(args[3]);
+        this.index = args[3];
     }
 
     public String type() {
@@ -23,11 +23,15 @@ public class ArrayLoadInst implements Instruction {
     }
 
     public List<String> params() {
-        return Arrays.asList(this.dest, this.arr_name, Integer.toString(this.index));
+        return Arrays.asList(this.dest, this.arr_name, this.index);
     }
 
     public Set<String> var_use() {
-        return new HashSet<>(Arrays.asList(this.arr_name));
+        if (this.index.matches("-?\\d+(\\.\\d+)?")) {
+            return new HashSet<>(Arrays.asList(this.arr_name, this.index));
+        } else {
+            return new HashSet<>(Arrays.asList(this.arr_name));
+        }
     }
 
     public Set<String> var_def() {
