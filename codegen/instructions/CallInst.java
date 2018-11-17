@@ -13,7 +13,7 @@ public class CallInst implements Instruction {
 
     public CallInst(String[] args) {
         this.func = args[1];
-        this.args = Arrays.copyOfRange(args, 2, args.length - 1);
+        this.args = Arrays.copyOfRange(args, 2, args.length);
     }
 
     public String type() {

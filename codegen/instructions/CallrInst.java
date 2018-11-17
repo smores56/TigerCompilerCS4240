@@ -15,7 +15,7 @@ public class CallrInst implements Instruction {
     public CallrInst(String[] args) {
         this.dest = args[1];
         this.func = args[2];
-        this.args = Arrays.copyOfRange(args, 3, args.length - 1);
+        this.args = Arrays.copyOfRange(args, 3, args.length);
     }
 
     public String type() {
