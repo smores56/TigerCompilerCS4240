@@ -36,6 +36,8 @@ public class ControlFlow {
                 String label = ((GotoInst) inst).get_dest();
                 int index = this.block_index_from_label(leader_indices, labels.get(label));
                 this.flows.put(j, new Integer[]{index});
+            } else if (j < this.blocks.size() - 1) {
+                this.flows.put(j, new Integer[]{j + 1});
             }
         }
     }
@@ -86,30 +88,20 @@ public class ControlFlow {
     }
 
     public void calculate_livenesses() {
-        List<HashSet<String>[]> curr_livenesses = blocks
-            .stream()
-            .map(b -> b.get_livenesses())
-            .collect(Collectors.toList());
-        List<HashSet<String>[]> old_livenesses = null;
+        boolean updated = true;
 
-        while (!curr_livenesses.equals(old_livenesses)) {
-            old_livenesses = curr_livenesses;
-
+        while (updated) {
+            updated = false;
             for (Codeblock block : this.blocks) {
-                block.propagate_liveness();
+                updated = updated || block.propagate_liveness();
             }
             for (int block_index : this.flows.keySet()) {
                 Integer[] flows_to = this.flows.get(block_index);
                 for (int f : flows_to) {
                     Set<String> liveness = this.blocks.get(f).get_block_liveness();
-                    this.blocks.get(block_index).update_block_liveness(liveness);
+                    updated = updated || this.blocks.get(block_index).update_block_liveness(liveness);
                 }
             }
-
-            curr_livenesses = blocks
-                .stream()
-                .map(b -> b.get_livenesses())
-                .collect(Collectors.toList());
         }
     }
 
@@ -124,9 +116,9 @@ public class ControlFlow {
             System.out.println(String.format("-   live: %s", String.join(", ", block.get_liveness(block.size()))));
             String flows_to = String.join(", ", Arrays
                 .stream(this.flows.getOrDefault(i, new Integer[]{}))
-                .map(x -> x.toString())
+                .map(x -> new Integer(x + 1).toString())
                 .collect(Collectors.toList()));
-            System.out.println(String.format("--  flows to: %s", flows_to));
+            System.out.println(String.format("-- flows to: %s", flows_to));
         }
     }
 }

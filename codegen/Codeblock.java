@@ -22,17 +22,36 @@ public class Codeblock {
         return this.livenesses[0];
     }
 
-    public void update_block_liveness(Set<String> liveness) {
-        this.livenesses[this.livenesses.length - 1].addAll(liveness);
+    public boolean update_block_liveness(Set<String> liveness) {
+        HashSet<String> block_liveness = this.livenesses[this.livenesses.length - 1];
+        boolean different = false;
+        for (String l : liveness) {
+            different = different || !block_liveness.contains(l);
+        }
+
+        if (different) {
+            block_liveness.addAll(liveness);
+        }
+
+        return different;
     }
 
-    public void propagate_liveness() {
+    public boolean propagate_liveness() {
+        boolean different = false;
+
         for (int i = this.livenesses.length - 1; i > 0; i--) {
             Instruction inst = this.instructions[i - 1];
-            HashSet<String> liveness = this.livenesses[i];
-            liveness.removeAll(inst.var_def());
-            liveness.addAll(inst.var_use());
+            HashSet<String> out = this.livenesses[i];
+            HashSet<String> in = new HashSet<>(out);
+            in.removeAll(inst.var_def());
+            in.addAll(inst.var_use());
+
+            different = different || !in.equals(this.livenesses[i - 1]);
+
+            this.livenesses[i - 1] = in;
         }
+
+        return different;
     }
 
     public Instruction get_line(int i) {
