@@ -24,9 +24,9 @@ public class Codegen {
                     String name = line.split(" ")[1];
                     String return_type = lines.remove(0).split(" ")[0];
                     String ints_line = lines.remove(0);
-                    String[] ints = ints_line.substring(10, ints_line.length()).split(", *");
+                    String[] ints = ints_line.substring(9, ints_line.length()).trim().split(", *");
                     String floats_line = lines.remove(0);
-                    String[] floats = floats_line.substring(12, floats_line.length()).split(", *");
+                    String[] floats = floats_line.substring(11, floats_line.length()).trim().split(", *");
 
                     ArrayList<Instruction> instructions = new ArrayList<>();
                     line = lines.remove(0);
