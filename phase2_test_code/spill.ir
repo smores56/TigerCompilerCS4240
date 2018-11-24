@@ -1,0 +1,108 @@
+void main()
+int-list: Y0, X10, X20, X30, X40, X50, X60, X70, X80, X90, X100, X110, X120, X130, X140, X150, X160, X170, X180, X190, X200, X210, X220, X230, X240, X250, X260, X270, X280, X290, X300, X310, X320, var0, var1, var2, var3, var4, var5, var6, var7, var8, var9, var10, var11, var12, var13, var14, var15, var16, var17, var18, var19, var20,  var21, var22, var23, var24, var25, var26, var27, var28, var29, var30
+float-list:
+    assign, X320, 1,
+    assign, X310, 1,
+    assign, X300, 1,
+    assign, X290, 1,
+    assign, X280, 1,
+    assign, X270, 1,
+    assign, X260, 1,
+    assign, X250, 1,
+    assign, X240, 1,
+    assign, X230, 1,
+    assign, X220, 1,
+    assign, X210, 1,
+    assign, X200, 1,
+    assign, X190, 1,
+    assign, X180, 1,
+    assign, X170, 1,
+    assign, X160, 1,
+    assign, X150, 1,
+    assign, X140, 1,
+    assign, X130, 1,
+    assign, X120, 1,
+    assign, X110, 1,
+    assign, X100, 1,
+    assign, X90, 1,
+    assign, X80, 1,
+    assign, X70, 1,
+    assign, X60, 1,
+    assign, X50, 1,
+    assign, X40, 1,
+    assign, X30, 1,
+    assign, X20, 1,
+    assign, X10, 1,
+    assign, Y0, 0,
+    goto, main0
+main0:
+    add, X10, X20, var0
+    add, var0, X30, var1
+    add, var1, X40, var2
+    add, var2, X50, var3
+    add, var3, X60, var4
+    add, var4, X70, var5
+    add, var5, X80, var6
+    add, var6, X90, var7
+    add, var7, X100, var8
+    add, var8, X110, var9
+    add, var9, X120, var10
+    add, var10, X130, var11
+    add, var11, X140, var12
+    add, var12, X150, var13
+    add, var13, X160, var14
+    add, var14, X170, var15
+    add, var15, X180, var16
+    add, var16, X190, var17
+    add, var17, X200, var18
+    add, var18, X210, var19
+    add, var19, X220, var20
+    add, var20, X230, var21
+    add, var21, X240, var22
+    add, var22, X250, var23
+    add, var23, X260, var24
+    add, var24, X270, var25
+    add, var25, X280, var26
+    add, var26, X290, var27
+    add, var27, X300, var28
+    add, var28, X310, var29
+    add, var29, X320, var30
+    add, var6, X90, var7
+    add, var7, X100, var8
+    add, var8, X110, var9
+    add, var9, X120, var10
+    assign, Y0, var30,
+    call, printi, X10
+    call, printi, X20
+    call, printi, X30
+    call, printi, X40
+    call, printi, X50
+    call, printi, X60
+    call, printi, X70
+    call, printi, X80
+    call, printi, X90
+    call, printi, X100
+    call, printi, X110
+    call, printi, X120
+    call, printi, X130
+    call, printi, X140
+    call, printi, X150
+    call, printi, X160
+    call, printi, X170
+    call, printi, X180
+    call, printi, X190
+    call, printi, X200
+    call, printi, X210
+    call, printi, X220
+    call, printi, X230
+    call, printi, X240
+    call, printi, X250
+    call, printi, X260
+    call, printi, X270
+    call, printi, X280
+    call, printi, X290
+    call, printi, X300
+    call, printi, X310
+    call, printi, X320
+    call, printi, Y0
+    return, , ,
