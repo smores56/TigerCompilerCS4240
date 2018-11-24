@@ -1,0 +1,53 @@
+fact_st_1_0:
+r0 := 0;
+store r0 into $temp4;
+load n_stf_fact_2_0 into r0;
+r1 := r0;
+store r1 into $temp1;
+r0 := 1;
+store r0 into $temp2;
+r0 := 1;
+store r0 into $temp3;
+load $temp1 into r0;
+load $temp2 into r1;
+if (r0 = r1) goto cond_0_stz_stf_fact_2_0;
+goto cond_1_after_stf_fact_2_0;
+cond_0_stz_stf_fact_2_0:
+r0 := 0;
+store r0 into $temp3;
+cond_1_after_stf_fact_2_0:
+load $temp3 into r0;
+load $temp4 into r1;
+if (r0 <> r1) goto if_after2__stf_fact_2_0;
+r0 := 1;
+store r0 into $temp0;
+load $temp0 into r0;
+return r0;
+if_after2__stf_fact_2_0:
+load n_stf_fact_2_0 into r0;
+r1 := r0;
+store r1 into $temp5;
+r0 := 1;
+store r0 into $temp6;
+load $temp5 into r0;
+load $temp6 into r1;
+r2 := r0 - r1;
+store r2 into $temp7;
+load $temp7 into r0;
+r0 := r0(r0);
+store r1 into fact_st_1_0;
+load $temp8 into r0;
+r1 := r0;
+store r1 into r_st_1_0;
+load n_stf_fact_2_0 into r0;
+r1 := r0;
+store r1 into $temp9;
+load r_st_1_0 into r0;
+r1 := r0;
+store r1 into $temp10;
+load $temp9 into r0;
+load $temp10 into r1;
+r2 := r0 * r1;
+store r2 into $temp11;
+load $temp11 into r0;
+return r0;
