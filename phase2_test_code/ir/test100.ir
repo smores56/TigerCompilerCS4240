@@ -1,0 +1,46 @@
+void main():
+int-list: A0, B0, C0, D0, E0, var0, var1, var2, var3, var4, var5
+float-list:
+
+assign, E0, 0,
+
+assign, D0, 0,
+
+assign, C0, 0,
+
+assign, B0, 0,
+
+assign, A0, 0,
+
+goto, main0
+
+main0:
+add, A0, 0, var0
+assign, A0, var0,
+add, B0, 1, var1
+assign, B0, var1,
+add, C0, 2, var2
+assign, C0, var2,
+add, D0, 3, var3
+assign, D0, var3,
+add, E0, 4, var4
+assign, E0, var4,
+assign, var5, 0,
+breq, B0, 0, if_label0
+assign, var5, 1,
+if_label0:
+breq, var5, 0, if_label1
+assign, A0, 0,
+assign, B0, 1,
+assign, C0, 2,
+goto, if_label2, ,
+if_label1:
+assign, D0, 3,
+assign, E0, 4,
+if_label2:
+call, printi, A0
+call, printi, B0
+call, printi, C0
+call, printi, D0
+call, printi, E0
+return, , ,

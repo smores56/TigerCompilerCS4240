@@ -1,8 +1,0 @@
-let
-	var m : int := 5;
-	function print ( n : int ) begin
-		printi(n);
-	end;
-in
-	print(m);
-end

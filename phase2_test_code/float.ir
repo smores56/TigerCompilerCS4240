@@ -1,8 +1,0 @@
-
-int-list:
-float-list: A, B, t0
-main0:
-    assign, A, 1.5,
-    add, A, 5.0, t0
-    assign, B, t0,
-    return, , ,

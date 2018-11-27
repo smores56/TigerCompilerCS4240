@@ -1,9 +1,0 @@
-void main()
-int-list: m, t0
-float-list:
-    assign, m, 5,
-main:
-    mult, m, 2, t0
-    assign, m, t0,
-    call, printi, m
-    return, , ,
