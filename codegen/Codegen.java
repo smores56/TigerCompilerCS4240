@@ -1,10 +1,14 @@
+package backend;
+
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.HashSet;
 import java.util.Arrays;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import instructions.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import codegen.instructions.*;
 
 public class Codegen {
 
@@ -14,7 +18,7 @@ public class Codegen {
         } else {
             ArrayList<String> lines = Codegen.read_file(args[0]);
             if (lines.size() == 0) {
-                throw new RuntimeException("");
+                throw new RuntimeException("empty file");
             }
 
             ArrayList<FunctionIR> functions = new ArrayList<>();
@@ -42,10 +46,11 @@ public class Codegen {
                 }
             }
 
+            String name = Paths.get(args[0]).getFileName().toString().split("\\.")[0];
             for (FunctionIR f : functions) {
                 System.out.println(String.format("\nRunning analysis for function \"%s\":", f.name()));
                 System.out.println("------------------------------");
-                f.run();
+                f.run(name);
                 System.out.println("------------------------------\n");
             }
         }
@@ -75,15 +80,17 @@ public class Codegen {
             return new LabelInst(
                 new String[]{inst.substring(0, inst.length() - 1)});
         } else {
-            String[] args = inst.split(", *");
+            String[] first_split = inst.split(", *", 2);
+            String type = first_split[0];
+            String[] args = first_split[1].split(", *");
 
-            switch (args[0]) {
+            switch (type) {
                 case "add":
                     return (Instruction) new AddInst(args);
                 case "and":
                     return (Instruction) new AndInst(args);
                 case "assign":
-                    if (args.length == 3) {
+                    if (args.length == 2) {
                         return (Instruction) new AssignInst(args);
                     } else {
                         return (Instruction) new ArrayAssignInst(args);
@@ -111,7 +118,7 @@ public class Codegen {
                 case "div":
                     return (Instruction) new DivInst(args);
                 case "return":
-                    if (args.length == 1) {
+                    if (args.length == 0) {
                         return (Instruction) new EmptyReturnInst(args);
                     } else {
                         return (Instruction) new ReturnInst(args);
