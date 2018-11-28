@@ -1,5 +1,3 @@
-package backend;
-
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.HashSet;
@@ -8,7 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import codegen.instructions.*;
+import instructions.*;
 
 public class Codegen {
 

@@ -1,4 +1,4 @@
-package codegen.instructions;
+package instructions;
 
 import java.util.Arrays;
 import java.util.HashMap;
