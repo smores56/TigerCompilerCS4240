@@ -1,8 +1,9 @@
-package instructions;
+package codegen.instructions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -12,9 +13,9 @@ abstract public class BinopInst {
     protected String dest;
 
     public BinopInst(String[] args) {
-        this.left = args[1];
-        this.right = args[2];
-        this.dest = args[3];
+        this.left = args[0];
+        this.right = args[1];
+        this.dest = args[2];
     }
 
     public List<String> params() {
@@ -24,9 +25,7 @@ abstract public class BinopInst {
     public Set<String> var_use() {
         HashSet<String> uses = new HashSet<>();
         for (String var : new String[]{this.left, this.right}) {
-            try {
-                double d = Double.parseDouble(var);
-            } catch(NumberFormatException e) {
+            if (!var.matches("-?\\d+(\\.\\d+)?")) {
                 uses.add(var);
             }
         }

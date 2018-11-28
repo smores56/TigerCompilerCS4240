@@ -1,8 +1,8 @@
-package instructions;
+package codegen.instructions;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -43,7 +43,16 @@ public class StoreInst implements Instruction {
         return new StoreInst(params.toArray(new String[params.size()]));
     }
 
+    public LoadInst reverse() {
+        return new LoadInst(new String[]{this.dest, this.source});
+    }
+
     public String debug() {
         return String.format("store %s into %s;", this.source, this.dest);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("store, %s, %s", this.dest, this.source);
     }
 }

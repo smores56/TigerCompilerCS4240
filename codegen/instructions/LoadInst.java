@@ -1,4 +1,4 @@
-package instructions;
+package codegen.instructions;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -43,7 +43,16 @@ public class LoadInst implements Instruction {
         return new LoadInst(params.toArray(new String[params.size()]));
     }
 
+    public StoreInst reverse() {
+        return new StoreInst(new String[]{this.dest, this.source});
+    }
+
     public String debug() {
         return String.format("load %s into %s;", this.source, this.dest);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("load, %s, %s", this.dest, this.source);
     }
 }

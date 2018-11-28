@@ -1,8 +1,9 @@
-package instructions;
+package codegen.instructions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -13,9 +14,9 @@ public class ArrayStoreInst implements Instruction {
     private String rvalue;
 
     public ArrayStoreInst(String[] args) {
-        this.arr_name = args[1];
-        this.index = args[2];
-        this.rvalue = args[3];
+        this.arr_name = args[0];
+        this.index = args[1];
+        this.rvalue = args[2];
     }
 
     public String type() {
@@ -29,7 +30,7 @@ public class ArrayStoreInst implements Instruction {
     public Set<String> var_use() {
         HashSet<String> uses = new HashSet<>();
         for (String var : new String[]{this.index, this.rvalue}) {
-            if (var.matches("-?\\d+(\\.\\d+)?")) {
+            if (!var.matches("-?\\d+(\\.\\d+)?")) {
                 uses.add(var);
             }
         }
@@ -38,10 +39,27 @@ public class ArrayStoreInst implements Instruction {
     }
 
     public Set<String> var_def() {
-        return new HashSet<String>(Arrays.asList(this.arr_name));
+        // return new HashSet<String>(Arrays.asList(this.arr_name));
+        return new HashSet<String>();
+    }
+
+    public Instruction with_registers(HashMap<String, String> var_reg_map) {
+        List<String> params = this.params();
+        for (int i = 0; i < params.size(); i++) {
+            String param = params.get(i);
+            if (var_reg_map.containsKey(param)) {
+                params.set(i, var_reg_map.get(param));
+            }
+        }
+        return new ArrayStoreInst(params.toArray(new String[params.size()]));
     }
 
     public String debug() {
         return String.format("%s[%s] := %s;", this.arr_name, this.index, this.rvalue);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("array_store, %s, %s, %s", this.arr_name, this.index, this.rvalue);
     }
 }
