@@ -1,10 +1,12 @@
+package backend;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.Set;
 import java.util.Arrays;
-import instructions.*;
+import codegen.instructions.*;
 
 public class Codeblock {
     private Instruction[] instructions;
@@ -80,5 +82,15 @@ public class Codeblock {
 
     public Instruction[] get_lines() {
         return this.instructions;
+    }
+
+    public HashMap<String, Integer> calc_liveranges() {
+        HashMap<String, Integer> liveranges = new HashMap<>();
+        for (HashSet<String> liveness : this.livenesses) {
+            for (String var : liveness) {
+                liveranges.put(var, liveranges.getOrDefault(var, 0) + 1);
+            }
+        }
+        return liveranges;
     }
 }
