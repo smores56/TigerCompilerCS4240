@@ -1,3 +1,5 @@
+package backend;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
@@ -5,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Arrays;
-import instructions.*;
+import codegen.instructions.*;
 
 public class ControlFlow {
     private ArrayList<Codeblock> blocks;
@@ -19,7 +21,7 @@ public class ControlFlow {
         this.blocks = new ArrayList<>();
         for (int i = 0; i < leader_indices.size() - 1; i++) {
             Instruction[] block_instructions = Arrays.copyOfRange(
-                instructions, leader_indices.get(i), leader_indices.get(i + 1) - 1);
+                instructions, leader_indices.get(i), leader_indices.get(i + 1));
             this.blocks.add(new Codeblock(block_instructions));
         }
 
@@ -120,5 +122,9 @@ public class ControlFlow {
                 .collect(Collectors.toList()));
             System.out.println(String.format("-- flows to: %s", flows_to));
         }
+    }
+
+    public ArrayList<Codeblock> get_blocks() {
+        return this.blocks;
     }
 }
