@@ -1,6 +1,7 @@
+#start_function fact_st_1_0
 int fact_st_1_0(int n_stf_fact_2_0):
 int-list: $temp8,$temp9,$temp10,$temp0,$temp1,$temp2,$temp3,$temp4,$temp11,$temp5,$temp6,$temp7,n_stf_fact_2_0
-float-list: 
+float-list:
 fact_st_1_0:
 	assign,$temp4,0,
 	assign,$temp1,n_stf_fact_2_0,
@@ -24,11 +25,12 @@ if_after2__stf_fact_2_0:
 	assign,$temp10,r_st_1_0,
 	mult,$temp9,$temp10,$temp11
 	return,$temp11,,
-	
-	
+#end_function fact_st_1_0
+
+#start_function main
 void main():
 int-list: $temp0,$temp1,$temp2,r_st_1_0
-float-list: 
+float-list:
 	assign,r_st_1_0,1,
 main:
 	assign,$temp0,5,
@@ -37,3 +39,4 @@ main:
 	assign,$temp2,r_st_1_0,
 	call,printi,$temp2
 	return,,,
+#end_function main

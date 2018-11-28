@@ -1,19 +1,13 @@
+#start_function main
 void main():
 int-list: A0, B0, C0, D0, E0, var0, var1, var2, var3, var4, var5
 float-list:
-
 assign, E0, 0,
-
 assign, D0, 0,
-
 assign, C0, 0,
-
 assign, B0, 0,
-
 assign, A0, 0,
-
 goto, main0
-
 main0:
 add, A0, 0, var0
 assign, A0, var0,
@@ -44,3 +38,4 @@ call, printi, C0
 call, printi, D0
 call, printi, E0
 return, , ,
+#end_function main
