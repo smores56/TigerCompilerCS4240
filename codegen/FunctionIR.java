@@ -183,8 +183,9 @@ public class FunctionIR {
     public List<Instruction> map_coloring_regalloc(List<String> registers) {
         ControlFlow cf = new ControlFlow(this.instructions);
         cf.calculate_livenesses();
+        HashMap<String, Integer> spill_costs = cf.calculate_spill_costs();
         LiveRangeGraph lrg = new LiveRangeGraph(cf.get_blocks());
-        HashMap<String, String> coloring = lrg.color_graph(registers);
+        HashMap<String, String> coloring = lrg.color_graph(registers, spill_costs);
 
         List<Instruction> instructions = new ArrayList<>();
         for (Codeblock block : cf.get_blocks()) {
