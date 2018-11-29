@@ -56,7 +56,7 @@ public class LiveRangeGraph {
         }
     }
 
-    public HashMap<String, String> color_graph(List<String> registers) {
+    public HashMap<String, String> color_graph(List<String> registers, HashMap<String, Integer> spill_costs) {
         HashMap<String, HashSet<String>> old_edges = new HashMap<>();
         for (String var : this.edges.keySet()) {
             old_edges.put(var, new HashSet<>(this.edges.get(var)));
@@ -78,8 +78,13 @@ public class LiveRangeGraph {
             }
         }
 
-        if (this.edges.size() > 0) {
+        while (this.edges.size() > 0) {
+            String max_cost_var = null;
             for (String var : this.edges.keySet()) {
+                if (max_cost_var == null || spill_costs.get(var) > spill_costs.get(max_cost_var)) {
+                    max_cost_var = var;
+                }
+                degrees.remove(var);
                 removed_nodes.push(var);
             }
         }
