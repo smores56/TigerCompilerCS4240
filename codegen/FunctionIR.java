@@ -26,43 +26,42 @@ public class FunctionIR {
     }
 
     public void run(String file_base) {
-        List<String> registers = Arrays.asList("r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7");
+        List<String> registers = Arrays.asList("r1", "r2", "r3", "r4", "r5", "r6", "r7");
         System.out.println("Method 1 of 3, Naive Register Allocation:");
         System.out.println("Generating instructions...");
-        List<Instruction> naive_instructions = this.naive_regalloc(registers);
+        List<InstRegallocPair> naive_instructions = this.naive_regalloc(registers);
         String file_name1 = String.format("../output/%s-%s.naive.ir", file_base, this.name);
         System.out.println("Done. Saving to \"" + file_name1 + "\"...");
         this.save_to_file(naive_instructions, file_name1);
         System.out.println("Done.");
 
-
         System.out.println("Method 2 of 3, CFG + Intra-Block Allocation:");
         System.out.println("Generating instructions...");
-        List<Instruction> block_instructions = this.intrablock_regalloc(registers);
+        List<InstRegallocPair> block_instructions = this.intrablock_regalloc(registers);
         String file_name2 = String.format("../output/%s-%s.block.ir", file_base, this.name);
         System.out.println("Done. Saving to \"" + file_name2 + "\"...");
         this.save_to_file(block_instructions, file_name2);
         System.out.println("Done.");
 
-
         System.out.println("Method 3 of 3, Global Map-Coloring Allocation:");
         System.out.println("Generating instructions...");
-        List<Instruction> colored_instructions = this.map_coloring_regalloc(registers);
+        List<InstRegallocPair> colored_instructions = this.map_coloring_regalloc(registers);
         String file_name3 = String.format("../output/%s-%s.full.ir", file_base, this.name);
         System.out.println("Done. Saving to \"" + file_name3 + "\"...");
         this.save_to_file(colored_instructions, file_name3);
         System.out.println("Done.");
     }
 
-    public List<Instruction> naive_regalloc(List<String> registers) {
-        ArrayList<Instruction> naive_instructions = new ArrayList<>();
+    public List<InstRegallocPair> naive_regalloc(List<String> registers) {
+        ArrayList<InstRegallocPair> naive_instructions = new ArrayList<>();
         for (Instruction inst : this.instructions) {
             int reg_index = 0;
             Set<String> using = inst.var_use();
             Set<String> defining = inst.var_def();
             HashMap<String, String> used_regs = new HashMap<>();
             for (String use : using) {
-                naive_instructions.add(new LoadInst(new String[]{registers.get(reg_index), use}));
+                naive_instructions.add(new InstRegallocPair(
+                    new LoadInst(new String[]{registers.get(reg_index), use}), null));
                 used_regs.put(use, registers.get(reg_index));
                 reg_index++;
             }
@@ -72,23 +71,23 @@ public class FunctionIR {
                 used_regs.put(def, registers.get(reg_index));
                 reg_index++;
             }
-            naive_instructions.add(inst.with_registers(used_regs));
+            naive_instructions.add(new InstRegallocPair(inst.with_registers(used_regs), used_regs));
             for (Instruction store_inst : store_insts) {
-                naive_instructions.add(store_inst);
+                naive_instructions.add(new InstRegallocPair(store_inst, null));
             }
         }
 
         return naive_instructions;
     }
 
-    public List<Instruction> intrablock_regalloc(List<String> registers) {
+    public List<InstRegallocPair> intrablock_regalloc(List<String> registers) {
         ControlFlow cf = new ControlFlow(this.instructions);
-        ArrayList<Instruction> instructions = new ArrayList<>();
-        for (Codeblock block : cf.get_blocks()) {
+        ArrayList<InstRegallocPair> instructions = new ArrayList<>();
+        List<Codeblock> blocks = cf.get_blocks();
+        for (int i = 0; i < blocks.size(); i++) {
+            Codeblock block = blocks.get(i);
+            Integer[] flows = cf.get_flows(i);
             block.propagate_liveness();
-            for (HashSet<String> l : block.get_livenesses()) {
-                System.out.println(l);
-            }
             HashMap<String, Integer> liveranges = block.calc_liveranges();
             HashSet<String> all_vars = new HashSet<>(liveranges.keySet());
             List<String> regs = new ArrayList<>(registers);
@@ -96,7 +95,6 @@ public class FunctionIR {
             HashMap<String, String> var_reg_map = new HashMap<>();
             String max_var = null;
             int max = 0;
-            System.out.println(liveranges);
             while (liveranges.size() > 0 && regs.size() > 0) {
                 for (String var : liveranges.keySet()) {
                     if (liveranges.get(var) > max) {
@@ -108,8 +106,6 @@ public class FunctionIR {
                 var_reg_map.put(max_var, regs.remove(0));
                 max = 0;
             }
-            System.out.println(var_reg_map);
-            System.out.println(regs);
 
             HashSet<String> all_uses = new HashSet<>();
             for (Instruction inst : block.get_lines()) {
@@ -117,52 +113,21 @@ public class FunctionIR {
             }
             for (String use : all_uses) {
                 if (var_reg_map.containsKey(use)) {
-                    instructions.add(new LoadInst(new String[]{var_reg_map.get(use), use}));
+                    instructions.add(new InstRegallocPair(
+                        new LoadInst(new String[]{var_reg_map.get(use), use}), null));
                 }
             }
 
-            for (Instruction inst : block.get_lines()) {
-                regs = new ArrayList<>(registers);
-                HashMap<String, String> regalloc = new HashMap<>();
-                List<StoreInst> outer_store_insts = new ArrayList<>();
-                System.out.println("inst: " + inst.toString());
-
-                Set<String> using = inst.var_use();
-                System.out.println("  using:       " + using.toString());
-                for (String use : using) {
-                    if (var_reg_map.containsKey(use)) {
-                        regalloc.put(use, var_reg_map.get(use));
-                    } else {
-                        String register = regs.remove(0);
-                        regalloc.put(use, register);
-                        StoreInst store = new StoreInst(new String[]{var_reg_map.get(register), register});
-                        outer_store_insts.add(store);
-                        instructions.add(store);
-                    }
+            boolean jump_at_end = flows.length != 1 || flows[0] != i + 1;
+            if (jump_at_end) {
+                for (int j = 0; j < block.size() - 1; j++) {
+                    instructions.addAll(this.intrablock_instruction_gen(
+                        block.get_line(j), registers, var_reg_map));
                 }
-
-                Set<String> defining = inst.var_def();
-                System.out.println("  defining:    " + defining.toString());
-                ArrayList<StoreInst> store_insts = new ArrayList<>();
-                for (String def : defining) {
-                    if (var_reg_map.containsKey(def)) {
-                        regalloc.put(def, var_reg_map.get(def));
-                    } else {
-                        String register = regs.remove(0);
-                        regalloc.put(def, register);
-                        StoreInst store = new StoreInst(new String[]{var_reg_map.get(register), register});
-                        outer_store_insts.add(store);
-                        instructions.add(store);
-                    }
-                }
-                System.out.println("  store_insts: " + store_insts.toString());
-
-                instructions.add(inst.with_registers(regalloc));
-                for (StoreInst store : store_insts) {
-                    instructions.add(store);
-                }
-                for (StoreInst store : outer_store_insts) {
-                    instructions.add(store.reverse());
+            } else {
+                for (int j = 0; j < block.size(); j++) {
+                    instructions.addAll(this.intrablock_instruction_gen(
+                        block.get_line(j), registers, var_reg_map));
                 }
             }
 
@@ -172,22 +137,90 @@ public class FunctionIR {
             }
             for (String def : all_defs) {
                 if (var_reg_map.containsKey(def)) {
-                    instructions.add(new StoreInst(new String[]{def, var_reg_map.get(def)}));
+                    instructions.add(new InstRegallocPair(
+                        new StoreInst(new String[]{def, var_reg_map.get(def)}), null));
                 }
+            }
+            if (jump_at_end) {
+                instructions.addAll(this.intrablock_instruction_gen(
+                    block.get_line(block.size() - 1), registers, var_reg_map));
             }
         }
 
         return instructions;
     }
 
-    public List<Instruction> map_coloring_regalloc(List<String> registers) {
+    private List<InstRegallocPair> intrablock_instruction_gen(Instruction inst,
+            List<String> registers, HashMap<String, String> var_reg_map) {
+        List<InstRegallocPair> instructions = new ArrayList<>();
+        List<String> regs = new ArrayList<>(registers);
+        for (String var : inst.vars_in_inst()) {
+            if (var_reg_map.containsKey(var)) {
+                regs.remove(var_reg_map.get(var));
+            }
+        }
+
+        HashMap<String, String> regalloc = new HashMap<>();
+        ArrayList<StoreInst> store_insts = new ArrayList<>();
+        ArrayList<StoreInst> outer_store_insts = new ArrayList<>();
+
+        Set<String> using = inst.var_use();
+        for (String use : using) {
+            if (var_reg_map.containsKey(use)) {
+                regalloc.put(use, var_reg_map.get(use));
+            } else {
+                String register = regs.remove(0);
+                regalloc.put(use, register);
+                for (String var : var_reg_map.keySet()) {
+                    if (var_reg_map.get(var).equals(register)) {
+                        StoreInst store = new StoreInst(new String[]{var, register});
+                        outer_store_insts.add(store);
+                        instructions.add(new InstRegallocPair(store, null));
+                        break;
+                    }
+                }
+                instructions.add(new InstRegallocPair(new LoadInst(new String[]{register, use}), null));
+            }
+        }
+
+        Set<String> defining = inst.var_def();
+        for (String def : defining) {
+            if (var_reg_map.containsKey(def)) {
+                regalloc.put(def, var_reg_map.get(def));
+            } else {
+                String register = regs.remove(0);
+                regalloc.put(def, register);
+                for (String var : var_reg_map.keySet()) {
+                    if (var_reg_map.get(var).equals(register)) {
+                        StoreInst store = new StoreInst(new String[]{var, register});
+                        outer_store_insts.add(store);
+                        instructions.add(new InstRegallocPair(store, null));
+                        break;
+                    }
+                }
+                store_insts.add(new StoreInst(new String[]{def, register}));
+            }
+        }
+
+        instructions.add(new InstRegallocPair(inst.with_registers(regalloc), regalloc));
+        for (StoreInst store : store_insts) {
+            instructions.add(new InstRegallocPair(store, null));
+        }
+        for (StoreInst store : outer_store_insts) {
+            instructions.add(new InstRegallocPair(store.reverse(), null));
+        }
+
+        return instructions;
+    }
+
+    public List<InstRegallocPair> map_coloring_regalloc(List<String> registers) {
         ControlFlow cf = new ControlFlow(this.instructions);
         cf.calculate_livenesses();
         HashMap<String, Integer> spill_costs = cf.calculate_spill_costs();
         LiveRangeGraph lrg = new LiveRangeGraph(cf.get_blocks());
         HashMap<String, String> coloring = lrg.color_graph(registers, spill_costs);
 
-        List<Instruction> instructions = new ArrayList<>();
+        List<InstRegallocPair> instructions = new ArrayList<>();
         for (Codeblock block : cf.get_blocks()) {
             Instruction[] lines = block.get_lines();
             for (int i = 0; i < lines.length; i++) {
@@ -225,7 +258,7 @@ public class FunctionIR {
                 }
 
                 if (using.size() == 0 && defining.size() == 0) {
-                    instructions.add(inst.with_registers(coloring));
+                    instructions.add(new InstRegallocPair(inst.with_registers(coloring), coloring));
                 } else {
                     HashSet<String> live_after = block.get_liveness(i + 1);
                     Set<String> live_after_copy = new HashSet<>(live_after);
@@ -245,28 +278,28 @@ public class FunctionIR {
                         String var = live_after_iter.next();
                         StoreInst store = new StoreInst(new String[]{var, coloring.get(var)});
                         outer_store_insts.add(store);
-                        instructions.add(store);
+                        instructions.add(new InstRegallocPair(store, null));
                     }
 
                     Iterator<String> regs = usable_regs.iterator();
                     for (String use : using) {
                         String reg = regs.next();
                         var_reg_map.put(use, reg);
-                        instructions.add(new LoadInst(new String[]{reg, use}));
+                        instructions.add(new InstRegallocPair(new LoadInst(new String[]{reg, use}), null));
                     }
                     List<StoreInst> store_insts = new ArrayList<>();
                     for (String def : defining) {
                         String reg = regs.next();
                         var_reg_map.put(def, reg);
-                        instructions.add(new StoreInst(new String[]{def, reg}));
+                        instructions.add(new InstRegallocPair(new StoreInst(new String[]{def, reg}), null));
                     }
-                    instructions.add(inst.with_registers(var_reg_map));
+                    instructions.add(new InstRegallocPair(inst.with_registers(var_reg_map), var_reg_map));
                     for (Instruction store : store_insts) {
-                        instructions.add(store);
+                        instructions.add(new InstRegallocPair(store, null));
                     }
 
                     for (StoreInst store : outer_store_insts) {
-                        instructions.add(store.reverse());
+                        instructions.add(new InstRegallocPair(store.reverse(), null));
                     }
                 }
             }
@@ -275,11 +308,11 @@ public class FunctionIR {
         return instructions;
     }
 
-    public void save_to_file(List<Instruction> instructions, String file_name) {
+    public void save_to_file(List<InstRegallocPair> instructions, String file_name) {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file_name));
-            for (Instruction inst : instructions) {
-                bw.write(inst.toString() + "\n");  // TODO: write actual instruction
+            for (InstRegallocPair pair : instructions) {
+                bw.write(String.format("%25s - %s\n", pair.get_inst(), pair.get_regalloc()));
             }
             bw.close();
         } catch (IOException e) {

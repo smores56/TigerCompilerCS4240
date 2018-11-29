@@ -129,6 +129,10 @@ public class ControlFlow {
         return this.blocks;
     }
 
+    public Integer[] get_flows(int i) {
+        return this.flows.get(i);
+    }
+
     public HashMap<String, Integer> calculate_spill_costs() {
         HashSet<String> all_vars = new HashSet<>();
         for (Codeblock block : this.blocks) {
