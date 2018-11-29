@@ -39,6 +39,8 @@ public class ControlFlow {
                 this.flows.put(j, new Integer[]{index});
             } else if (j < this.blocks.size() - 1) {
                 this.flows.put(j, new Integer[]{j + 1});
+            } else {
+                this.flows.put(j, new Integer[]{});
             }
         }
     }
@@ -150,11 +152,11 @@ public class ControlFlow {
 
             for (Instruction inst : block.get_lines()) {
                 for (String var : inst.vars_in_inst()) {
-                    costs.put(var, costs.get(var) + Math.pow(loops.size(), 10));
+                    costs.put(var, costs.get(var) + (int) Math.pow(loops.size(), 10));
                 }
             }
 
-            if (loop.containsKey(i)) {
+            if (loops.contains(i)) {
                 loops.remove(i);
             }
         }

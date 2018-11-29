@@ -84,8 +84,8 @@ public class LiveRangeGraph {
                 if (max_cost_var == null || spill_costs.get(var) > spill_costs.get(max_cost_var)) {
                     max_cost_var = var;
                 }
-                degrees.remove(var);
-                removed_nodes.push(var);
+                degrees.remove(max_cost_var);
+                removed_nodes.push(max_cost_var);
             }
         }
 
