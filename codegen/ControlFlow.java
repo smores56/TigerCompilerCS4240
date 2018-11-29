@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Arrays;
+import java.lang.Math;
 import instructions.*;
 
 public class ControlFlow {
@@ -124,5 +125,40 @@ public class ControlFlow {
 
     public ArrayList<Codeblock> get_blocks() {
         return this.blocks;
+    }
+
+    public HashMap<String, Integer> calculate_spill_costs() {
+        HashSet<String> all_vars = new HashSet<>();
+        for (Codeblock block : this.blocks) {
+            for (HashSet<String> liveness : block.get_livenesses()) {
+                all_vars.addAll(liveness);
+            }
+        }
+        HashMap<String, Integer> costs = new HashMap<>();
+        for (String var : all_vars) {
+            costs.put(var, 0);
+        }
+
+        HashSet<Integer> loops = new HashSet<>();
+        for (int i = 0; i < this.blocks.size(); i++) {
+            Codeblock block = this.blocks.get(i);
+            for (int f : this.flows.get(i)) {
+                if (f != i + 1) {
+                    loops.add(f);
+                }
+            }
+
+            for (Instruction inst : block.get_lines()) {
+                for (String var : inst.vars_in_inst()) {
+                    costs.put(var, costs.get(var) + Math.pow(loops.size(), 10));
+                }
+            }
+
+            if (loop.containsKey(i)) {
+                loops.remove(i);
+            }
+        }
+
+        return costs;
     }
 }
