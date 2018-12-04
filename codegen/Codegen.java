@@ -33,7 +33,8 @@ public class Codegen {
                     ArrayList<Instruction> instructions = new ArrayList<>();
                     line = lines.remove(0);
                     while (!line.startsWith("#end_function")) {
-                        instructions.add(Codegen.parse_instruction(line));
+                        Instruction inst = Codegen.parse_instruction(line);
+                        instructions.add(inst);
                         line = lines.remove(0);
                     }
 

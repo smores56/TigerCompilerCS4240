@@ -26,29 +26,40 @@ public class FunctionIR {
     }
 
     public void run(String file_base) {
-        List<String> registers = Arrays.asList("r1", "r2", "r3", "r4", "r5", "r6", "r7");
+        List<String> registers = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5");
         System.out.println("Method 1 of 3, Naive Register Allocation:");
+        MIPSGenerator naiveMips = new MIPSGenerator(this.ints, this.floats, this.name);
         System.out.println("Generating instructions...");
         List<InstRegallocPair> naive_instructions = this.naive_regalloc(registers);
         String file_name1 = String.format("../output/%s-%s.naive.ir", file_base, this.name);
         System.out.println("Done. Saving to \"" + file_name1 + "\"...");
         this.save_to_file(naive_instructions, file_name1);
+        this.translate_to_mips(naive_instructions, file_name1, naiveMips);
+
         System.out.println("Done.");
 
         System.out.println("Method 2 of 3, CFG + Intra-Block Allocation:");
+        MIPSGenerator blockMips = new MIPSGenerator(this.ints, this.floats, this.name);
+
+
         System.out.println("Generating instructions...");
         List<InstRegallocPair> block_instructions = this.intrablock_regalloc(registers);
+
         String file_name2 = String.format("../output/%s-%s.block.ir", file_base, this.name);
         System.out.println("Done. Saving to \"" + file_name2 + "\"...");
         this.save_to_file(block_instructions, file_name2);
+        this.translate_to_mips(block_instructions, file_name2, blockMips);
         System.out.println("Done.");
 
         System.out.println("Method 3 of 3, Global Map-Coloring Allocation:");
+        MIPSGenerator colorMips = new MIPSGenerator(this.ints, this.floats, this.name);
+
         System.out.println("Generating instructions...");
         List<InstRegallocPair> colored_instructions = this.map_coloring_regalloc(registers);
         String file_name3 = String.format("../output/%s-%s.full.ir", file_base, this.name);
         System.out.println("Done. Saving to \"" + file_name3 + "\"...");
         this.save_to_file(colored_instructions, file_name3);
+        this.translate_to_mips(colored_instructions, file_name2, colorMips);
         System.out.println("Done.");
     }
 
@@ -319,6 +330,57 @@ public class FunctionIR {
             e.printStackTrace();
         }
     }
+
+    public void translate_to_mips(List<InstRegallocPair> instructions, String file_name, MIPSGenerator mips) {
+        List<InstRegallocPair> init_moved =  this.move_init_calls(instructions);
+        for(InstRegallocPair inst: init_moved) {
+            mips.translate(inst);
+        }
+        for(String s: mips.get_data(init_moved)) {
+            System.out.println(s);
+        }
+        for(String s: mips.get_text()) {
+            System.out.println(s);
+        }
+
+    }
+
+    public List<InstRegallocPair> move_init_calls(List<InstRegallocPair> instructions) {
+        int location_of_function = 0;
+        boolean function_label_exists = false;
+
+        int location_of_first_label = 0;
+        boolean got_first_label = false;
+
+        for(InstRegallocPair pair: instructions) {
+            if(pair.get_inst().type().equals("label")) {
+                got_first_label = true;
+                LabelInst label = (LabelInst) pair.get_inst();
+                if(label.get_name().equals(this.name)) {
+                    function_label_exists = true;
+                    break;
+                }
+            }
+            if(!got_first_label) {
+                location_of_first_label++;
+            }
+            location_of_function++;
+        }
+
+        List<InstRegallocPair> init = null;
+        List<InstRegallocPair> rest = null;
+        if(got_first_label && function_label_exists && location_of_function != 0) {
+            int size_of_init = location_of_first_label;
+            init = instructions.subList(0, size_of_init);
+            rest = instructions.subList(size_of_init, instructions.size());
+            rest.addAll((location_of_function - size_of_init) + 1, init);
+        }
+        if(rest == null) {
+            rest = instructions;
+        }
+        return rest;
+    }
+
 
     public String name() {
         return this.name;

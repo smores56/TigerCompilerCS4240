@@ -1,0 +1,17 @@
+           assign, $t0, 1 - {r_st_1_0=$t0}
+     store, r_st_1_0, $t0 - null
+                    main: - {}
+           assign, $t0, 5 - {$temp0=$t0}
+       store, $temp0, $t0 - null
+        load, $t0, $temp0 - null
+callr, $t1, fact_st_1_0, $t0 - {$temp0=$t0, $temp1=$t1}
+       store, $temp1, $t1 - null
+        load, $t0, $temp1 - null
+         assign, $t1, $t0 - {r_st_1_0=$t1, $temp1=$t0}
+     store, r_st_1_0, $t1 - null
+      load, $t0, r_st_1_0 - null
+         assign, $t1, $t0 - {r_st_1_0=$t0, $temp2=$t1}
+       store, $temp2, $t1 - null
+        load, $t0, $temp2 - null
+        call, printi, $t0 - {$temp2=$t0}
+              return, , , - {}

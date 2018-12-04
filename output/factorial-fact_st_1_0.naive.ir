@@ -1,0 +1,53 @@
+             fact_st_1_0: - {}
+           assign, $t0, 0 - {$temp4=$t0}
+       store, $temp4, $t0 - null
+load, $t0, n_stf_fact_2_0 - null
+         assign, $t1, $t0 - {$temp1=$t1, n_stf_fact_2_0=$t0}
+       store, $temp1, $t1 - null
+           assign, $t0, 1 - {$temp2=$t0}
+       store, $temp2, $t0 - null
+           assign, $t0, 1 - {$temp3=$t0}
+       store, $temp3, $t0 - null
+        load, $t0, $temp1 - null
+        load, $t1, $temp2 - null
+brneq, $t0, $t1, cond_0_stz_stf_fact_2_0 - {$temp1=$t0, $temp2=$t1}
+goto, cond_1_after_stf_fact_2_0, , - {}
+ cond_0_stz_stf_fact_2_0: - {}
+           assign, $t0, 0 - {$temp3=$t0}
+       store, $temp3, $t0 - null
+cond_1_after_stf_fact_2_0: - {}
+        load, $t0, $temp3 - null
+        load, $t1, $temp4 - null
+breq, $t0, $t1, if_after2__stf_fact_2_0 - {$temp3=$t0, $temp4=$t1}
+           assign, $t0, 1 - {$temp0=$t0}
+       store, $temp0, $t0 - null
+        load, $t0, $temp0 - null
+           return, $t0, , - {$temp0=$t0}
+ if_after2__stf_fact_2_0: - {}
+load, $t0, n_stf_fact_2_0 - null
+         assign, $t1, $t0 - {$temp5=$t1, n_stf_fact_2_0=$t0}
+       store, $temp5, $t1 - null
+           assign, $t0, 1 - {$temp6=$t0}
+       store, $temp6, $t0 - null
+        load, $t0, $temp5 - null
+        load, $t1, $temp6 - null
+       sub, $t0, $t1, $t2 - {$temp5=$t0, $temp6=$t1, $temp7=$t2}
+       store, $temp7, $t2 - null
+        load, $t0, $temp7 - null
+callr, $t1, fact_st_1_0, $t0 - {$temp8=$t1, $temp7=$t0}
+       store, $temp8, $t1 - null
+        load, $t0, $temp8 - null
+         assign, $t1, $t0 - {$temp8=$t0, r_st_1_0=$t1}
+     store, r_st_1_0, $t1 - null
+load, $t0, n_stf_fact_2_0 - null
+         assign, $t1, $t0 - {$temp9=$t1, n_stf_fact_2_0=$t0}
+       store, $temp9, $t1 - null
+      load, $t0, r_st_1_0 - null
+         assign, $t1, $t0 - {r_st_1_0=$t0, $temp10=$t1}
+      store, $temp10, $t1 - null
+        load, $t0, $temp9 - null
+       load, $t1, $temp10 - null
+      mult, $t0, $t1, $t2 - {$temp9=$t0, $temp10=$t1, $temp11=$t2}
+      store, $temp11, $t2 - null
+       load, $t0, $temp11 - null
+           return, $t0, , - {$temp11=$t0}
