@@ -9,20 +9,18 @@ import java.util.Map;
 import java.util.Set;
 
 // The only things that can accept labels are load, store, array_assign, and assign
-
-
 public class MIPSGenerator {
-    private int stackPointer;
-    private int framePointer;
-    private List<String> data;
-    private List<String> text;
-    private HashSet<String> intsSet;
-    private HashSet<String> floatsSet;
-    private String[] ints;
-    private String[] floats;
-    private HashMap<String, String> arrays;
+    public int stackPointer;
+    public int framePointer;
+    public List<String> data;
+    public List<String> text;
+    public HashSet<String> intsSet;
+    public HashSet<String> floatsSet;
+    public String[] ints;
+    public String[] floats;
+    public HashMap<String, String> arrays;
     
-    private String name;
+    public String name;
 
     
 
@@ -352,6 +350,11 @@ public class MIPSGenerator {
                     this.print(params.get(1), false);
                 } else {
                     System.out.println("Get the rest of the function working! " + inst.toString());
+                    for(int i = 2; i < params.size(); i++) {
+                        // save all registers on the stack
+                        // add_another_argument();
+                    }
+                    this.text.add(String.format("\tjal %s", params.get(0)));
 
                     // for(int i = 0; i < Math.min(params.size(), 4); i++) { // This is super hacky
                     //     if(params.get(i).charAt(0) == '$') {
@@ -368,10 +371,21 @@ public class MIPSGenerator {
                     // this.text.add(String.format("\tadd %s, %s, %s", params.get(0), "$v0", "$zero"));
                 }
                 return;
+
+            case "callr":
+                for(int i = 2; i < params.size(); i++) {
+                    // save all registers on the stack
+                    // add_another_argument();
+                }
+                this.text.add(String.format("\tjal %s", params.get(0)));
+                this.text.add(String.format("\tadd %s, %s, %s", params.get(0), "$v0", "$zero"));
+
+                return;
             case "goto":
                 this.text.add(String.format("\tj %s", params.get(0)));
                 return;
             case "empty_return":
+                
                 this.text.add(String.format("\tj $ra"));
                 return;
             case "return":
