@@ -156,7 +156,7 @@ public class ControlFlow {
 
             for (Instruction inst : block.get_lines()) {
                 for (String var : inst.vars_in_inst()) {
-                    costs.put(var, costs.get(var) + (int) Math.pow(loops.size(), 10));
+                    costs.put(var, costs.getOrDefault(var, 0) + (int) Math.pow(loops.size(), 10));
                 }
             }
 
