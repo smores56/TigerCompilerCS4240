@@ -16,7 +16,7 @@ public class MIPSGenerator {
     private int stackPointer;
     private int framePointer;
     private List<String> data;
-    private List<String> text;
+    public List<String> text;
     private HashSet<String> intsSet;
     private HashSet<String> floatsSet;
     private String[] ints;
