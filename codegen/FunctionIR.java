@@ -335,8 +335,16 @@ public class FunctionIR {
     }
 
     public void translate_to_mips(List<FunctionIR> funcs, List<InstRegallocPair> instructions, String file_name, MIPSGenerator mips) {
-        List<InstRegallocPair> init_moved = this.move_init_calls(instructions);
+        List<InstRegallocPair> init_moved =  this.move_init_calls(instructions);
 
+        if(!init_moved.get(0).get_inst().type().equals("label")) {
+            mips.text.add(this.name + ":");
+        } else if(init_moved.get(0).get_inst().type().equals("label")) {
+            LabelInst label = (LabelInst) init_moved.get(0).get_inst();
+            if(!label.get_name().equals(this.name)) {
+                mips.text.add(this.name + ":");
+            }
+        }
         for(InstRegallocPair inst: init_moved) {
             mips.translate(funcs, inst);
         }
