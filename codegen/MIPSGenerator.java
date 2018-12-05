@@ -1,14 +1,15 @@
+// The only things that can accept labels are load, store, array_assign, and assign
+
 import instructions.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-// The only things that can accept labels are load, store, array_assign, and assign
+import java.util.TreeMap;
 
 
 public class MIPSGenerator {
@@ -21,12 +22,10 @@ public class MIPSGenerator {
     private String[] ints;
     private String[] floats;
     private HashMap<String, String> arrays;
-    
     private String name;
+    private HashMap<String, Integer> variable_locations;
 
-    
-
-    public MIPSGenerator(String[] ints, String[] floats, String name) {
+    public MIPSGenerator(String[] ints, String[] floats, String name, List<InstRegallocPair> instructions) {
         this.stackPointer = 0;
         this.framePointer = 0;
         this.data = new ArrayList<>();
@@ -39,12 +38,13 @@ public class MIPSGenerator {
         this.intsSet = new HashSet<String>();
         this.floatsSet = new HashSet<String>();
         this.arrays = new HashMap<String, String>();
+        this.variable_locations = this.variable_locations(instructions);
         this.initialize_vars(ints, floats);
     }
 
     private void initialize_vars(String[] ints, String[] floats) {
-        for(String i: ints) {
-            if(!i.equals("")) {
+        for (String i: ints) {
+            if (this.variable_locations.containsKey(i) || newString.contains("[")) {
                 String newString = i;
                 if(newString.contains("[")) {
                     newString = newString.split("\\[", 0)[0];
@@ -54,12 +54,12 @@ public class MIPSGenerator {
                     this.intsSet.add(this.name + "__" + newString.substring(1, newString.length()));
                 } else {
                     this.intsSet.add(this.name + "__" + newString);
-    
+
                 }
             }
         }
         for(String i: floats) {
-            if(!i.equals("")) {
+            if (this.variable_locations.containsKey(i) || newString.contains("[")) {
                 String newString = i;
                 if(newString.contains("[")) {
                     newString = newString.split("\\[", 0)[0];
@@ -80,7 +80,7 @@ public class MIPSGenerator {
                 if(intDecl.matches(".*(\\[\\d*])+")){
                     int size = 0;
                     String arr_name = this.arrays.get(intDecl);
-                    String sizes = intDecl.replaceFirst("^" + arr_name, "");                
+                    String sizes = intDecl.replaceFirst("^" + arr_name, "");
                     for(String amount: sizes.split("\\[")) {
                         if(!amount.equals("")) {
                             String one = amount.replace("]", "");
@@ -91,7 +91,7 @@ public class MIPSGenerator {
                             size = size * 32 * amountInt;
                         }
 
-                    } 
+                    }
                     this.data.add(String.format("\t%s: .space %s", hash_code(arr_name), size));
                 } else {
                     this.data.add(String.format("\t%s: .space %s", hash_code(intDecl) , 32)); // how big is an int?
@@ -105,7 +105,7 @@ public class MIPSGenerator {
                 if(floatDecl.matches(".*(\\[\\d*])+")){
                     int size = 0;
                     String arr_name = this.arrays.get(floatDecl);
-                    String sizes = floatDecl.replaceFirst("^" + arr_name, "");                
+                    String sizes = floatDecl.replaceFirst("^" + arr_name, "");
                     for(String amount: sizes.split("\\[")) {
                         if(!amount.equals("")) {
                             String one = amount.replace("]", "");
@@ -116,14 +116,14 @@ public class MIPSGenerator {
                             size = size * 32 * amountInt;
                         }
 
-                    } 
+                    }
                     this.data.add(String.format("\t%s: .space %s", hash_code(arr_name), size));
                 } else {
                     this.data.add(String.format("\t%s: .space %s", hash_code(floatDecl), 32));
                 }
             }
         }
-        
+
         return this.data;
     }
 
@@ -152,7 +152,7 @@ public class MIPSGenerator {
     //         if(intsSet.contains(hash_code(entry.getKey()))) {
     //             return false;
     //         }
-    //     }        
+    //     }
 
     //     return false;
     // }
@@ -168,7 +168,7 @@ public class MIPSGenerator {
 
 
 
-    public void translate(InstRegallocPair inst) {
+    public void translate(List<FunctionIR> funcs, InstRegallocPair inst) {
         String instructionType = inst.get_inst().type();
         List<String> params = inst.get_inst().params();
         String name_of_label;
@@ -178,25 +178,9 @@ public class MIPSGenerator {
                 return;
             case "assign":
                 if(is_register(params.get(1))) {
-                    // if the value is stored in a register, then load from one register to the next with add r1, r2, $zero
-                    // if(!is_float(inst)) {
-                        // if its an int, use normal add instruction
-                        this.text.add(String.format("\tadd %s, %s, %s", params.get(0), params.get(1), "$zero"));
-                    // } else {
-                        // if float, first, store the first register into a float register, and store $zero into a float register. Use add.s
-                        // this.text.add(String.format("\tli.s %s, %s", "$f0", params.get(1)));
-                        // this.text.add(String.format("\tli.s %s, %s", "$f1", "$zero"));
-                        // this.text.add(String.format("\tadd.s %s, %s, %s", params.get(0), "$f0", "$f1"));
-                    // }
+                    this.text.add(String.format("\tadd %s, %s, %s", params.get(0), params.get(1), "$zero"));
                 } else {
-                    // if the value is an immediate value
-                    // if(parse_int(params.get(1)) != null) {
-                        // If the value is an int, add immediate with addi
-                        this.text.add(String.format("\taddi %s, %s, %s", params.get(0), "$zero", params.get(1)));
-                    // } else {
-                    //     // If the value is a float, first load int 
-                    //     this.text.add(String.format("\tli.s %s, %s", params.get(0), params.get(1)));
-                    // }
+                    this.text.add(String.format("\taddi %s, %s, %s", params.get(0), "$zero", params.get(1)));
                 }
                 return;
             case "and":
@@ -351,23 +335,46 @@ public class MIPSGenerator {
                 } else if(params.get(0).equals("printf")) {
                     this.print(params.get(1), false);
                 } else {
-                    System.out.println("Get the rest of the function working! " + inst.toString());
-
-                    // for(int i = 0; i < Math.min(params.size(), 4); i++) { // This is super hacky
-                    //     if(params.get(i).charAt(0) == '$') {
-                    //         name_of_label = this.name + "__" + params.get(i).substring(1, params.get(i).length());
-                    //     } else {
-                    //         name_of_label = this.name + "__" + params.get(i);
-                    //     }
-                    //     if(this.intsSet.contains(name_of_label) || this.floatsSet.contains(name_of_label)){
-                    //         this.text.add(String.format("\tlw %s, %s(%s)", "$a" + i, name_of_label, "$zero"));
-                    //     } else {
-                    //         this.text.add(String.format("\tlw %s, %s(%s)", "$a" + i, params.get(i), "$zero"));
-                    //     }
-                    // }
-                    // this.text.add(String.format("\tadd %s, %s, %s", params.get(0), "$v0", "$zero"));
+                    FunctionIR func = null;
+                    for (FunctionIR f : funcs) {
+                        if (f.name().equals(params.get(0))) {
+                            func = f;
+                            break;
+                        }
+                    }
+                    TreeMap<String, String> args = func.args();
+                    this.text.add(String.format("add $sp, $sp, %d", args.size() * 4));
+                    int offset = -args.size();
+                    for (String arg : arg.keySet()) {
+                        this.text.add(String.format("sw %s, $sp(%d)", arg, offset));
+                        offset += 4;
+                    }
+                    this.text.add(String.format("jal %s", func.name()));
+                    if (!func.return_type().equals("")) {
+                        this.text.add(String.format("sub $sp, $sp, %d", args.size() * 4 + 4));
+                    } else {
+                        this.text.add(String.format("sub $sp, $sp, %d", args.size() * 4));
+                    }
                 }
                 return;
+            case "callr":
+                FunctionIR func = null;
+                for (FunctionIR f : funcs) {
+                    if (f.name().equals(params.get(0))) {
+                        func = f;
+                        break;
+                    }
+                }
+                TreeMap<String, String> args = func.args();
+                this.text.add(String.format("add $sp, $sp, %d", args.size() * 4));
+                int offset = -args.size();
+                for (String arg : arg.keySet()) {
+                    this.args
+                    this.text.add(String.format("sw %s, $sp(%d)", arg, offset));
+                    offset += 4;
+                }
+                this.text.add(String.format("jal %s", func.name()));
+                this.text.add(String.format("sub $sp, $sp, %d", args.size() * 4 + 4));
             case "goto":
                 this.text.add(String.format("\tj %s", params.get(0)));
                 return;
@@ -379,13 +386,13 @@ public class MIPSGenerator {
                 this.text.add(String.format("\tj $ra"));
                 return;
             default:
-                System.out.println(String.format("Handle %s, %s", inst.get_inst().type(), inst.toString()));
+                System.out.println(String.format("Handle %s, %s", inst.get_inst().type(), inst.toString())); // TODO: remove this
                 return;
         }
     }
 
     private String hash_code(String label) {
-        String name_of_label; 
+        String name_of_label;
         if(is_register(label)) {
             name_of_label = this.name + "__" + label.substring(1, label.length());
         } else {
@@ -394,7 +401,7 @@ public class MIPSGenerator {
 
         if(this.intsSet.contains(name_of_label) || this.floatsSet.contains(name_of_label)) {
             return name_of_label;
-        } 
+        }
         return label;
     }
 
@@ -409,4 +416,18 @@ public class MIPSGenerator {
         this.text.add("\tsyscall");
     }
 
+    public HashMap<String, Integer> variable_locations(List<InstRegallocPair> instructions) {
+        HashSet<String> stack_vars = new HashSet<>();
+        for (InstRegallocPair pair : instructions) {
+            Instruction inst = pair.get_inst();
+            HashMap<String, String> var_reg_map = pair.get_regalloc();
+            if (inst instanceof LoadInst) {
+                stack_vars.add(inst.params().get(1));
+            } else if (inst instanceof StoreInst) {
+                stack_vars.add(inst.params().get(0));
+            }
+        }
+
+        return stack_vars;
+    }
 }
