@@ -1,9 +1,0 @@
-         assign, $s0, 0.0 - {0Y=$s0}
-           store, 0Y, $s0 - null
-         assign, $s0, 0.0 - {0X=$s0}
-           store, 0X, $s0 - null
-                    main: - {}
-           call, print, 5 - {}
-         assign, $s0, 1.0 - {0X=$s0}
-           store, 0X, $s0 - null
-              return, , , - {}

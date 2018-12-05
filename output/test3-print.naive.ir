@@ -1,3 +1,0 @@
-             load, $s0, X - null
-        call, printi, $s0 - {X=$s0}
-              return, , , - {}
