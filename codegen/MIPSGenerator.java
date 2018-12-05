@@ -14,6 +14,7 @@ import java.util.TreeMap;
 
 public class MIPSGenerator {
     private int stackPointer;
+    private int topOfStack;
     private int framePointer;
     private List<String> data;
     private List<String> text;
@@ -28,6 +29,7 @@ public class MIPSGenerator {
     public MIPSGenerator(FunctionIR func, String[] ints, String[] floats, String name, List<InstRegallocPair> instructions) {
         this.stackPointer = 0;
         this.framePointer = 0;
+        this.totalStackSize = 0;
         this.data = new ArrayList<>();
         this.data.add(".data");
         this.text = new ArrayList<>();
@@ -474,17 +476,37 @@ public class MIPSGenerator {
                 stack_vars.add(inst.params().get(0));
             }
         }
+        HashMap<String, Integer> arrays = new HashMap<>();
+        for (String i : this.ints) {
+            if (i.contains("[")) {
+                arrays.put(i.split("[")[0], Integer.parseInt(i.split("[")[1].split("]")[0]));
+            }
+        }
+        for (String f : this.floats) {
+            if (f.contains("[")) {
+                arrays.put(f.split("[")[0], Integer.parseInt(f.split("[")[1].split("]")[0]));
+            }
+        }
+        int total_array_size = 0;
+        for (int arr_size : arrays.values()) {
+            total_array_size += arr_size;
+        }
 
         HashMap<String, Integer> var_locations = new HashMap<>();
-        int offset = -4 * (regs.size() + stack_vars.size() + func.args().size());
+        this.totalStackSize = 4 * (regs.size() + stack_vars.size() + func.args().size() + total_array_size);
+        int offset = this.totalStackSize;
         for (String arg : func.args().keySet()) {
             stack_vars.put(arg, offset);
-            offset += 4;
+            offset -= 4;
         }
-        offset += 4 * regs.size();
+        offset -= 4 * regs.size();
         for (String var : stack_vars) {
             stack_vars.put(var, offset);
-            offset += 4;
+            offset -= 4;
+        }
+        for (String arr_name : arrays) {
+            stack_vars.put(arr_name, offset);
+            offset -= arrays.get(arr_name) * 4;
         }
 
         return var_locations;
