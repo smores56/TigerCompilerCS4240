@@ -9,38 +9,41 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FunctionIR {
     private String name;
     private String return_type;
+    private HashMap<String, String> args;
     private String[] ints;
     private String[] floats;
     private Instruction[] instructions;
 
-    public FunctionIR(String name, String return_type, String[] ints, String[] floats, Instruction[] instructions) {
+    public FunctionIR(String name, String return_type,
+            TreeMap<String, String> args, String[] ints, String[] floats, Instruction[] instructions) {
         this.name = name;
         this.return_type = return_type;
+        this.args = args;
         this.ints = ints;
         this.floats = floats;
         this.instructions = instructions;
     }
 
-    public void run(String file_base) {
+    public void run(String file_base, List<FunctionIR> funcs) {
         List<String> registers = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5");
         System.out.println("Method 1 of 3, Naive Register Allocation:");
-        MIPSGenerator naiveMips = new MIPSGenerator(this.ints, this.floats, this.name);
         System.out.println("Generating instructions...");
         List<InstRegallocPair> naive_instructions = this.naive_regalloc(registers);
         String file_name1 = String.format("../output/%s-%s.naive.ir", file_base, this.name);
         System.out.println("Done. Saving to \"" + file_name1 + "\"...");
         this.save_to_file(naive_instructions, file_name1);
-        this.translate_to_mips(naive_instructions, file_name1, naiveMips);
+        MIPSGenerator naiveMips = new MIPSGenerator(this.ints, this.floats, this.name, naive_instructions);
+        this.translate_to_mips(funcs, naive_instructions, file_name1, naiveMips);
 
         System.out.println("Done.");
 
         System.out.println("Method 2 of 3, CFG + Intra-Block Allocation:");
         MIPSGenerator blockMips = new MIPSGenerator(this.ints, this.floats, this.name);
-
 
         System.out.println("Generating instructions...");
         List<InstRegallocPair> block_instructions = this.intrablock_regalloc(registers);
@@ -48,7 +51,7 @@ public class FunctionIR {
         String file_name2 = String.format("../output/%s-%s.block.ir", file_base, this.name);
         System.out.println("Done. Saving to \"" + file_name2 + "\"...");
         this.save_to_file(block_instructions, file_name2);
-        this.translate_to_mips(block_instructions, file_name2, blockMips);
+        this.translate_to_mips(funcs, block_instructions, file_name2, blockMips);
         System.out.println("Done.");
 
         System.out.println("Method 3 of 3, Global Map-Coloring Allocation:");
@@ -59,7 +62,7 @@ public class FunctionIR {
         String file_name3 = String.format("../output/%s-%s.full.ir", file_base, this.name);
         System.out.println("Done. Saving to \"" + file_name3 + "\"...");
         this.save_to_file(colored_instructions, file_name3);
-        this.translate_to_mips(colored_instructions, file_name2, colorMips);
+        this.translate_to_mips(funcs, colored_instructions, file_name2, colorMips);
         System.out.println("Done.");
     }
 
@@ -331,10 +334,11 @@ public class FunctionIR {
         }
     }
 
-    public void translate_to_mips(List<InstRegallocPair> instructions, String file_name, MIPSGenerator mips) {
-        List<InstRegallocPair> init_moved =  this.move_init_calls(instructions);
+    public void translate_to_mips(List<FunctionIR> funcs, List<InstRegallocPair> instructions, String file_name, MIPSGenerator mips) {
+        List<InstRegallocPair> init_moved = this.move_init_calls(instructions);
+
         for(InstRegallocPair inst: init_moved) {
-            mips.translate(inst);
+            mips.translate(funcs, inst);
         }
         for(String s: mips.get_data(init_moved)) {
             System.out.println(s);
@@ -381,6 +385,10 @@ public class FunctionIR {
         return rest;
     }
 
+
+    public TreeMap<String, String> args() {
+        return this.args;
+    }
 
     public String name() {
         return this.name;
