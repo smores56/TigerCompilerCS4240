@@ -25,7 +25,7 @@ public class MIPSGenerator {
     private String name;
     private HashMap<String, Integer> variable_locations;
 
-    public MIPSGenerator(String[] ints, String[] floats, String name, List<InstRegallocPair> instructions) {
+    public MIPSGenerator(FunctionIR func, String[] ints, String[] floats, String name, List<InstRegallocPair> instructions) {
         this.stackPointer = 0;
         this.framePointer = 0;
         this.data = new ArrayList<>();
@@ -143,6 +143,17 @@ public class MIPSGenerator {
         }
     }
 
+    public void add_stack_setup() {
+        List<String> regs = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5");
+        this.text.add(1, String.format("addi $sp, $sp, %d", regs.size() * 4));
+        int offset = -regs.size();
+        for (String reg : regs) {
+            this.text.add(1, String.format("sw %s, $sp(%d)", reg, offset));
+            offset += 4;
+        }
+    }
+
+
     // private boolean is_float(InstRegallocPair inst) {
 
     //     for(Map<K,V>.Entry<String, String> entry : inst.get_regalloc().entrySet()) {
@@ -166,7 +177,9 @@ public class MIPSGenerator {
         }
     }
 
+    private int var_location(String var) {
 
+    }
 
     public void translate(List<FunctionIR> funcs, InstRegallocPair inst) {
         String instructionType = inst.get_inst().type();
@@ -346,15 +359,12 @@ public class MIPSGenerator {
                     this.text.add(String.format("add $sp, $sp, %d", args.size() * 4));
                     int offset = -args.size();
                     for (String arg : arg.keySet()) {
-                        this.text.add(String.format("sw %s, $sp(%d)", arg, offset));
+                        String arg_reg = inst.get_regalloc().get(arg);
+                        this.text.add(String.format("sw %s, $sp(%d)", arg_reg, offset));
                         offset += 4;
                     }
                     this.text.add(String.format("jal %s", func.name()));
-                    if (!func.return_type().equals("")) {
-                        this.text.add(String.format("sub $sp, $sp, %d", args.size() * 4 + 4));
-                    } else {
-                        this.text.add(String.format("sub $sp, $sp, %d", args.size() * 4));
-                    }
+                    this.text.add(String.format("sub $sp, $sp, %d", args.size() * 4));
                 }
                 return;
             case "callr":
@@ -366,15 +376,17 @@ public class MIPSGenerator {
                     }
                 }
                 TreeMap<String, String> args = func.args();
-                this.text.add(String.format("add $sp, $sp, %d", args.size() * 4));
+                this.text.add(String.format("\tadd $sp, $sp, %d", args.size() * 4));
                 int offset = -args.size();
                 for (String arg : arg.keySet()) {
-                    this.args
-                    this.text.add(String.format("sw %s, $sp(%d)", arg, offset));
+                    String arg_reg = inst.get_regalloc().get(arg);
+                    this.text.add(String.format("\tsw %s, $sp(%d)", arg_reg, offset));
                     offset += 4;
                 }
-                this.text.add(String.format("jal %s", func.name()));
-                this.text.add(String.format("sub $sp, $sp, %d", args.size() * 4 + 4));
+                this.text.add(String.format("\tjal %s", func.name()));
+                this.text.add(String.format("\tsub $sp, $sp, %d", args.size() * 4));
+                this.text.add(String.format("\taddi %s, $v0, 0", params.get(0)));
+                return;
             case "goto":
                 this.text.add(String.format("\tj %s", params.get(0)));
                 return;
@@ -417,7 +429,7 @@ public class MIPSGenerator {
         this.text.add("\tsyscall");
     }
 
-    public HashMap<String, Integer> variable_locations(List<InstRegallocPair> instructions) {
+    public HashMap<String, Integer> variable_locations(FunctionIR func, List<InstRegallocPair> instructions) {
         HashSet<String> stack_vars = new HashSet<>();
         for (InstRegallocPair pair : instructions) {
             Instruction inst = pair.get_inst();
@@ -429,6 +441,7 @@ public class MIPSGenerator {
             }
         }
 
+        for
         return stack_vars;
     }
 }
