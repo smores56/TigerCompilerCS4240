@@ -304,7 +304,7 @@ public class MIPSGenerator {
                     this.print(params.get(1), false);
                 } else {
                     this.text.add(String.format("\taddi $sp, $sp, %d", (params.size() - 1) * 4));
-                    offset = (params.size() - 1) * -4;
+                    offset = (params.size() - 2) * -4;
                     for (String arg : params.subList(1, params.size())) {
                         String reg2 = arg;
                         if (parse_int(arg) != null) {
