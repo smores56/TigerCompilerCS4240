@@ -76,63 +76,6 @@ public class MIPSGenerator {
         }
     }
 
-    public List<String> get_data(List<InstRegallocPair> instructions) {
-        for(String intDecl: this.ints) {
-            if(!intDecl.equals("")) {
-                if(intDecl.matches(".*(\\[\\d*])+")){
-                    int size = 0;
-                    String arr_name = this.arrays.get(intDecl);
-                    String sizes = intDecl.replaceFirst("^" + arr_name, "");
-                    for(String amount: sizes.split("\\[")) {
-                        if(!amount.equals("")) {
-                            String one = amount.replace("]", "");
-                            Integer amountInt = Integer.parseInt(one);
-                            if(size == 0) {
-                                size++;
-                            }
-                            size = size * 32 * amountInt;
-                        }
-
-                    }
-                    this.data.add(String.format("\t%s: .space %s", hash_code(arr_name), size));
-                } else {
-                    this.data.add(String.format("\t%s: .space %s", hash_code(intDecl) , 32)); // how big is an int?
-                }
-            }
-        }
-
-
-        for(String floatDecl: this.floatsSet) {
-            if(!floatDecl.equals("")) {
-                if(floatDecl.matches(".*(\\[\\d*])+")){
-                    int size = 0;
-                    String arr_name = this.arrays.get(floatDecl);
-                    String sizes = floatDecl.replaceFirst("^" + arr_name, "");
-                    for(String amount: sizes.split("\\[")) {
-                        if(!amount.equals("")) {
-                            String one = amount.replace("]", "");
-                            Integer amountInt = Integer.parseInt(one);
-                            if(size == 0) {
-                                size++;
-                            }
-                            size = size * 32 * amountInt;
-                        }
-
-                    }
-                    this.data.add(String.format("\t%s: .space %s", hash_code(arr_name), size));
-                } else {
-                    this.data.add(String.format("\t%s: .space %s", hash_code(floatDecl), 32));
-                }
-            }
-        }
-
-        return this.data;
-    }
-
-    public List<String> get_text() {
-        return this.text;
-    }
-
     private boolean is_register(String s) {
         return s.charAt(0) == '$';
     }
@@ -350,15 +293,15 @@ public class MIPSGenerator {
                         }
                     }
                     TreeMap<String, String> args = func.args();
-                    this.text.add(String.format("addi $sp, $sp, %d", args.size() * 4));
+                    this.text.add(String.format("\taddi $sp, $sp, %d", args.size() * 4));
                     int offset = -args.size();
                     for (String arg : arg.keySet()) {
                         String arg_reg = inst.get_regalloc().get(arg);
-                        this.text.add(String.format("sw %s, %d($sp)", arg_reg, offset));
+                        this.text.add(String.format("\tsw %s, %d($sp)", arg_reg, offset));
                         offset += 4;
                     }
-                    this.text.add(String.format("jal %s", func.name()));
-                    this.text.add(String.format("subi $sp, $sp, %d", args.size() * 4));
+                    this.text.add(String.format("\tjal %s", func.name()));
+                    this.text.add(String.format("\tsubi $sp, $sp, %d", args.size() * 4));
                 }
                 return;
             case "callr":
