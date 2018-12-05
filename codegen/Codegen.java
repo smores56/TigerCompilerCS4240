@@ -1,12 +1,13 @@
-import java.util.ArrayList;
-import java.util.stream.Collectors;
-import java.util.HashSet;
-import java.util.Arrays;
+import instructions.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import instructions.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.TreeMap;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 
 public class Codegen {
 
@@ -24,7 +25,12 @@ public class Codegen {
             while (line != null) {
                 if (line.startsWith("#start_function")) {
                     String name = line.split(" ")[1];
-                    String return_type = lines.remove(0).split(" ")[0];
+                    String func_def = lines.remove(0);
+                    String return_type = func_def.split(" ")[0];
+                    TreeMap<String, Integer> args = new TreeMap<>();
+                    for (String arg_type_pair : func_def.split("(")[1].split(")")[0].split(", *")) {
+                        args.put(arg_type_pair.split(" ")[0], args.put(arg_type_pair.split(" ")[1]);
+                    }
                     String ints_line = lines.remove(0);
                     String[] ints = ints_line.substring(9, ints_line.length()).trim().split(", *");
                     String floats_line = lines.remove(0);
@@ -38,7 +44,7 @@ public class Codegen {
                         line = lines.remove(0);
                     }
 
-                    functions.add(new FunctionIR(name, return_type, ints, floats,
+                    functions.add(new FunctionIR(name, return_type, args, ints, floats,
                         instructions.toArray(new Instruction[instructions.size()])));
                 } else {
                     line = lines.size() == 0 ? null : lines.remove(0);
@@ -49,7 +55,7 @@ public class Codegen {
             for (FunctionIR f : functions) {
                 System.out.println(String.format("\nRunning analysis for function \"%s\":", f.name()));
                 System.out.println("------------------------------");
-                f.run(name);
+                f.run(name, functions);
                 System.out.println("------------------------------\n");
             }
         }
