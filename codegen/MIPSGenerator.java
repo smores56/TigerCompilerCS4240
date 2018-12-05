@@ -235,25 +235,38 @@ public class MIPSGenerator {
                 this.text.add(String.format("\tlw %s, %d($sp)", params.get(0), offset));
                 return;
             case "array_load":
-                this.text.add(String.format("\tlw %s, %d($sp)", "$t7", this.var_offset(params.get(0))));
-                this.text.add(String.format("\tli %s, %s", "$t6", params.get(1)));
-                this.text.add(String.format("\tadd %s, %s, %s", "$t6", "$t6","$t6"));
-                this.text.add(String.format("\tadd %s, %s, %s", "$t6", "$t6","$t6"));
-                this.text.add(String.format("\tadd %s, %s, %s", "$t5", "$t6","$t7"));
-                this.text.add(String.format("\tlw %s, %d(%s)", params.get(0), "$zero", "$t5"));
+                if (parse_int(params.get(2)) != null) {
+                    this.text.add(String.format("\tli $t6, %s", params.get(2)));
+                } else {
+                    this.text.add(String.format("\taddi $t6, %s, 0", params.get(2)));
+                }
+                this.text.add("\tadd $t6, $t6, $t6");
+                this.text.add("\tadd $t6, $t6, $t6");
+                this.text.add(String.format("\taddi $t6, $t6, %d", this.var_offset(params.get(1))));
+                this.text.add(String.format("\tlw %s, $t6($sp)", params.get(0)));
                 return;
             case "array_store":
-                this.text.add(String.format("\tlw %s, %d($sp)", "$t7", this.var_offset(params.get(1))));
-                this.text.add(String.format("\tli %s, %s", "$t6", params.get(2)));
-                this.text.add(String.format("\tadd %s, %s, %s", "$t6", "$t6","$t6"));
-                this.text.add(String.format("\tadd %s, %s, %s", "$t6", "$t6","$t6"));
-                this.text.add(String.format("\tadd %s, %s, %s", "$t5", "$t6","$t7"));
-                this.text.add(String.format("\tsw %s, 0(%s)", params.get(0), "$t5"));
+                if (parse_int(params.get(1)) != null) {
+                    this.text.add(String.format("\tli $t6, %s", params.get(1)));
+                } else {
+                    this.text.add(String.format("\taddi $t6, %s, 0", params.get(1)));
+                }
+                this.text.add("\tadd $t6, $t6, $t6");
+                this.text.add("\tadd $t6, $t6, $t6");
+
+                this.text.add(String.format("\taddi $t6, $t6, %d", this.var_offset(params.get(0))));
+                if (parse_float(params.get(2)) != null) {
+                    this.text.add(String.format("\tli $t5, %s", params.get(2)));
+                    this.text.add("\tsw $t5, $t6($sp)");
+                } else {
+                    this.text.add(String.format("\tsw %s, $t6($sp)", params.get(2)));
+                }
                 return;
             case "array_assign":
                 this.text.add("\tli $t8, " + params.get(2));
-                for(int i = 0; i < parse_int(params.get(1)); i = i + 4) {
-                    this.text.add(String.format("\tsw $t8, %d($sp)", -(i + this.var_offset(params.get(0)))));
+                offset = 0;
+                for(int i = 0; i < parse_int(params.get(1)); i++) {
+                    this.text.add(String.format("\tsw $t8, %d($sp)", (this.var_offset(params.get(0)) + i * 4)));
                 }
                 return;
             case "brneq":
