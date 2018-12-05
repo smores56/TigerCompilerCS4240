@@ -37,13 +37,13 @@ public class FunctionIR {
         String file_name1 = String.format("../output/%s-%s.naive.ir", file_base, this.name);
         System.out.println("Done. Saving to \"" + file_name1 + "\"...");
         this.save_to_file(naive_instructions, file_name1);
-        MIPSGenerator naiveMips = new MIPSGenerator(this.ints, this.floats, this.name, naive_instructions);
+        MIPSGenerator naiveMips = new MIPSGenerator(this, this.ints, this.floats, this.name, naive_instructions);
         this.translate_to_mips(funcs, naive_instructions, file_name1, naiveMips);
 
         System.out.println("Done.");
 
         System.out.println("Method 2 of 3, CFG + Intra-Block Allocation:");
-        MIPSGenerator blockMips = new MIPSGenerator(this.ints, this.floats, this.name);
+        MIPSGenerator blockMips = new MIPSGenerator(this, this.ints, this.floats, this.name);
 
         System.out.println("Generating instructions...");
         List<InstRegallocPair> block_instructions = this.intrablock_regalloc(registers);
@@ -55,7 +55,7 @@ public class FunctionIR {
         System.out.println("Done.");
 
         System.out.println("Method 3 of 3, Global Map-Coloring Allocation:");
-        MIPSGenerator colorMips = new MIPSGenerator(this.ints, this.floats, this.name);
+        MIPSGenerator colorMips = new MIPSGenerator(this, this.ints, this.floats, this.name);
 
         System.out.println("Generating instructions...");
         List<InstRegallocPair> colored_instructions = this.map_coloring_regalloc(registers);
@@ -326,7 +326,7 @@ public class FunctionIR {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file_name));
             for (InstRegallocPair pair : instructions) {
-                bw.write(String.format("%25s - %s\n", pair.get_inst(), pair.get_regalloc()));
+                bw.write(pair.get_inst().toString()));
             }
             bw.close();
         } catch (IOException e) {
@@ -335,7 +335,7 @@ public class FunctionIR {
     }
 
     public void translate_to_mips(List<FunctionIR> funcs, List<InstRegallocPair> instructions, String file_name, MIPSGenerator mips) {
-        List<InstRegallocPair> init_moved =  this.move_init_calls(instructions);
+        List<InstRegallocPair> init_moved = this.move_init_calls(instructions);
 
         if(!init_moved.get(0).get_inst().type().equals("label")) {
             mips.text.add(this.name + ":");
@@ -348,6 +348,7 @@ public class FunctionIR {
         for(InstRegallocPair inst: init_moved) {
             mips.translate(funcs, inst);
         }
+        mips.add_stack_setup();
         for(String s: mips.get_data(init_moved)) {
             System.out.println(s);
         }
