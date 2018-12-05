@@ -290,43 +290,35 @@ public class MIPSGenerator {
                 } else if(params.get(0).equals("printf")) {
                     this.print(params.get(1), false);
                 } else {
-                    FunctionIR func = null;
-                    for (FunctionIR f : funcs) {
-                        if (f.name().equals(params.get(0))) {
-                            func = f;
-                            break;
+                    this.text.add(String.format("\taddi $sp, $sp, %d", (params.size() - 1) * 4));
+                    offset = (params.size() - 1) * -4;
+                    for (String arg : params.subList(1, params.size())) {
+                        String reg2 = arg;
+                        if (parse_int(arg) != null) {
+                            this.text.add(String.format("\taddi $t1, $zero, %s", arg));
+                            reg2 = "$t1";
                         }
-                    }
-                    TreeMap<String, String> args = func.args();
-                    this.text.add(String.format("\taddi $sp, $sp, %d", args.size() * 4));
-                    offset = -args.size();
-                    for (String arg : args.keySet()) {
-                        String arg_reg = inst.get_regalloc().get(arg);
-                        this.text.add(String.format("\tsw %s, %d($sp)", arg_reg, offset));
+                        this.text.add(String.format("\tsw %s, %d($sp)", reg2, offset));
                         offset += 4;
                     }
-                    this.text.add(String.format("\tjal %s", func.name()));
-                    this.text.add(String.format("\taddi $sp, $sp, %d", args.size() * -4));
+                    this.text.add(String.format("\tjal %s", params.get(0)));
+                    this.text.add(String.format("\taddi $sp, $sp, %d", (params.size() - 1) * -4));
                 }
                 return;
             case "callr":
-                FunctionIR func = null;
-                for (FunctionIR f : funcs) {
-                    if (f.name().equals(params.get(0))) {
-                        func = f;
-                        break;
+                this.text.add(String.format("\taddi $sp, $sp, %d", (params.size() - 2) * 4));
+                offset = (params.size() - 2) * -4;
+                for (String arg : params.subList(2, params.size())) {
+                    String reg1 = arg;
+                    if (parse_int(arg) != null) {
+                        this.text.add(String.format("\taddi $t1, $zero, %s", arg));
+                        reg1 = "$t1";
                     }
-                }
-                TreeMap<String, String> args = func.args();
-                this.text.add(String.format("\taddi $sp, $sp, %d", args.size() * 4));
-                offset = -args.size();
-                for (String arg : args.keySet()) {
-                    String arg_reg = inst.get_regalloc().get(arg);
-                    this.text.add(String.format("\tsw %s, %d($sp)", arg_reg, offset));
+                    this.text.add(String.format("\tsw %s, %d($sp)", reg1, offset));
                     offset += 4;
                 }
-                this.text.add(String.format("\tjal %s", func.name()));
-                this.text.add(String.format("\taddi $sp, $sp, %d", args.size() * -4));
+                this.text.add(String.format("\tjal %s", params.get(1)));
+                this.text.add(String.format("\taddi $sp, $sp, %d", (params.size() - 2) * -4));
                 this.text.add(String.format("\taddi %s, $v0, 0", params.get(0)));
                 return;
             case "goto":
@@ -373,12 +365,12 @@ public class MIPSGenerator {
         HashMap<String, Integer> arrays = new HashMap<>();
         for (String i : this.ints) {
             if (i.contains("[")) {
-                arrays.put(i.split("[")[0], Integer.parseInt(i.split("[")[1].split("]")[0]));
+                arrays.put(i.split("\\[")[0], Integer.parseInt(i.split("\\[")[1].split("\\]")[0]));
             }
         }
         for (String f : this.floats) {
             if (f.contains("[")) {
-                arrays.put(f.split("[")[0], Integer.parseInt(f.split("[")[1].split("]")[0]));
+                arrays.put(f.split("\\[")[0], Integer.parseInt(f.split("\\[")[1].split("\\]")[0]));
             }
         }
         int total_array_size = 0;
@@ -402,6 +394,9 @@ public class MIPSGenerator {
             var_locations.put(arr_name, offset - arrays.get(arr_name) * 4);
             offset -= arrays.get(arr_name) * 4;
         }
+
+        System.out.println(var_locations);
+        System.out.println(this.totalStackSize);
 
         return var_locations;
     }
