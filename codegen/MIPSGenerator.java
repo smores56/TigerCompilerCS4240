@@ -430,6 +430,7 @@ public class MIPSGenerator {
     }
 
     public HashMap<String, Integer> variable_locations(FunctionIR func, List<InstRegallocPair> instructions) {
+        List<String> regs = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5");
         HashSet<String> stack_vars = new HashSet<>();
         for (InstRegallocPair pair : instructions) {
             Instruction inst = pair.get_inst();
@@ -441,7 +442,18 @@ public class MIPSGenerator {
             }
         }
 
-        for
-        return stack_vars;
+        HashMap<String, Integer> var_locations = new HashMap<>();
+        int offset = -4 * (regs.size() + stack_vars.size() + func.args().size());
+        for (String arg : func.args().keySet()) {
+            stack_vars.put(arg, offset);
+            offset += 4;
+        }
+        offset += 4 * regs.size();
+        for (String var : stack_vars) {
+            stack_vars.put(var, offset);
+            offset += 4;
+        }
+
+        return var_locations;
     }
 }
