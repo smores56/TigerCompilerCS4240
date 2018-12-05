@@ -336,16 +336,16 @@ public class MIPSGenerator {
                 int offset = this.var_offset(params.get(1));
                 this.text.add(String.format("\tlw %s, $sp(%s)", params.get(0), offset));
                 return;
-            case "array_load":
-                this.text.add(String.format("\tla %s, %s", "$t7", params.get(1)));
-                this.text.add(String.format("\tli %s, %s", "$t6", params.get(2)));
+            case "array_load":      
+                this.text.add(String.format("\tla %s, %s", "$t7", this.var_offset(params.get(0))));
+                this.text.add(String.format("\tli %s, %s", "$t6", params.get(1)));
                 this.text.add(String.format("\tadd %s, %s, %s", "$t6", "$t6","$t6"));
                 this.text.add(String.format("\tadd %s, %s, %s", "$t6", "$t6","$t6"));
                 this.text.add(String.format("\tadd %s, %s, %s", "$t5", "$t6","$t7"));
                 this.text.add(String.format("\tlw %s, %s(%s)", params.get(0), "$zero", "$t5"));
                 return;
             case "array_store":
-                this.text.add(String.format("\tla %s, %s", "$t7", params.get(1)));
+                this.text.add(String.format("\tla %s, %s", "$t7", this.var_offset(params.get(1))));
                 this.text.add(String.format("\tli %s, %s", "$t6", params.get(2)));
                 this.text.add(String.format("\tadd %s, %s, %s", "$t6", "$t6","$t6"));
                 this.text.add(String.format("\tadd %s, %s, %s", "$t6", "$t6","$t6"));
@@ -355,7 +355,7 @@ public class MIPSGenerator {
             case "array_assign":
                 this.text.add("\tli $t8, " + params.get(2));
                 for(int i = 0; i < parse_int(params.get(1)); i = i + 4) {
-                    this.text.add("\tsw $t8, -" + i + "(" + hash_code(params.get(0)) + ")");
+                    this.text.add("\tsw $t8, -" + i + "(" + this.var_location(params.get(0)) + ")");
                 }
                 return;
             case "brneq":
