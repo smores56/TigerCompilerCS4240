@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class Codegen {
@@ -51,13 +52,23 @@ public class Codegen {
                 }
             }
 
+            ArrayList<String> naive = new ArrayList<>();
+            ArrayList<String> block = new ArrayList<>();
+            ArrayList<String> color = new ArrayList<>();
+
+
             String name = Paths.get(args[0]).getFileName().toString().split("\\.")[0];
             for (FunctionIR f : functions) {
                 System.out.println(String.format("\nRunning analysis for function \"%s\":", f.name()));
                 System.out.println("------------------------------");
                 f.run(name, functions);
+                ArrayList<List<String>> temp = f.getText();
+                naive.addAll(naive.size(), temp.get(0));
+                block.addAll(naive.size(), temp.get(1));
+                color.addAll(naive.size(), temp.get(2));
                 System.out.println("------------------------------\n");
             }
+
         }
     }
 

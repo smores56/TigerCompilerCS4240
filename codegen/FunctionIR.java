@@ -18,6 +18,8 @@ public class FunctionIR {
     private String[] ints;
     private String[] floats;
     private Instruction[] instructions;
+    private ArrayList<List<String>> text;
+
 
     public FunctionIR(String name, String return_type,
             TreeMap<String, String> args, String[] ints, String[] floats, Instruction[] instructions) {
@@ -27,6 +29,7 @@ public class FunctionIR {
         this.ints = ints;
         this.floats = floats;
         this.instructions = instructions;
+        this.text = new ArrayList<ArrayList<String>>(3);
     }
 
     public void run(String file_base, List<FunctionIR> funcs) {
@@ -40,6 +43,8 @@ public class FunctionIR {
         MIPSGenerator naiveMips = new MIPSGenerator(this, this.ints, this.floats, this.name, naive_instructions);
         this.translate_to_mips(funcs, naive_instructions, file_name1, naiveMips);
 
+        this.text.set(0, naiveMips.get_text());
+
         System.out.println("Done.");
 
         System.out.println("Method 2 of 3, CFG + Intra-Block Allocation:");
@@ -52,6 +57,9 @@ public class FunctionIR {
         System.out.println("Done. Saving to \"" + file_name2 + "\"...");
         this.save_to_file(block_instructions, file_name2);
         this.translate_to_mips(funcs, block_instructions, file_name2, blockMips);
+
+        this.text.set(1, blockMips.get_text());
+
         System.out.println("Done.");
 
         System.out.println("Method 3 of 3, Global Map-Coloring Allocation:");
@@ -63,6 +71,7 @@ public class FunctionIR {
         System.out.println("Done. Saving to \"" + file_name3 + "\"...");
         this.save_to_file(colored_instructions, file_name3);
         this.translate_to_mips(funcs, colored_instructions, file_name2, colorMips);
+        this.text.set(2, colorMips.get_text());
         System.out.println("Done.");
     }
 
@@ -401,5 +410,10 @@ public class FunctionIR {
 
     public String name() {
         return this.name;
+    }
+
+
+    public ArrayList<List<String>> getText() {
+        return this.text;
     }
 }
