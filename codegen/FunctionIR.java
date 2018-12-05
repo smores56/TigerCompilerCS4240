@@ -335,7 +335,7 @@ public class FunctionIR {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file_name));
             for (InstRegallocPair pair : instructions) {
-                bw.write(pair.get_inst().toString()));
+                bw.write(pair.get_inst().toString());
             }
             bw.close();
         } catch (IOException e) {

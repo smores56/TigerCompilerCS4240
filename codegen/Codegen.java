@@ -30,7 +30,7 @@ public class Codegen {
                     String return_type = func_def.split(" ")[0];
                     TreeMap<String, Integer> args = new TreeMap<>();
                     for (String arg_type_pair : func_def.split("(")[1].split(")")[0].split(", *")) {
-                        args.put(arg_type_pair.split(" ")[0], args.put(arg_type_pair.split(" ")[1]);
+                        args.put(arg_type_pair.split(" ")[0], arg_type_pair.split(" ")[1]);
                     }
                     String ints_line = lines.remove(0);
                     String[] ints = ints_line.substring(9, ints_line.length()).trim().split(", *");
