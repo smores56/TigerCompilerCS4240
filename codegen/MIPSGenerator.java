@@ -132,6 +132,7 @@ public class MIPSGenerator {
     public List<String> get_text() {
         return this.text;
     }
+
     private boolean is_register(String s) {
         return s.charAt(0) == '$';
     }
@@ -145,72 +146,25 @@ public class MIPSGenerator {
         }
     }
 
-    public void add_stack_setup() {
+    public void add_stack_setup(FunctionIR func) {
         List<String> regs = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5");
-        this.text.add(1, String.format("addi $sp, $sp, %d", regs.size() * 4));
-        int offset = -regs.size();
+        int offset = 0;
         for (String reg : regs) {
             this.text.add(1, String.format("sw %s, $sp(%d)", reg, offset));
-            offset += 4;
+            offset -= 4;
         }
-        int local_var_size =0;
-
-        for(String s: this.ints) {
-            int size_current = 4;
-            int amount = 1;
-            String arr_name = null;
-            if(s.contains("\\[")) {
-                String[] split_by_open = s.split("\\[");
-                arr_name = split_by_open[0];
-                for(String i: split_by_open) {
-                    i.replace("\\]", "");
-                }
-                for(int i = 1; i < split_by_open.length; i++) {
-                    amount = amount * Integer.parseInt(split_by_open[i]);
-                }
-            }
-            size_current = size_current * amount;
-            local_var_size+=size_current;
-        }
-
-        for(String s: this.floats) {
-            int size_current = 4;
-            int amount = 1;
-            String arr_name = null;
-            if(s.contains("\\[")) {
-                String[] split_by_open = s.split("\\[");
-                arr_name = split_by_open[0];
-                for(String i: split_by_open) {
-                    i.replace("\\]", "");
-                }
-                for(int i = 1; i < split_by_open.length; i++) {
-                    amount = amount * Integer.parseInt(split_by_open[i]);
-                }
-            }
-            size_current = size_current * amount;
-            local_var_size+=size_current;
-        }
-
-        this.stackPointer = this.stackPointer + local_var_size + 24;
-
-        // In every iteration I have the current location on the stack (the offset) and the arr_name/s being the actual variable;
-
+        this.text.add(1, String.format("subi $sp, $sp, %d", this.totalStackSize - func.args().size() * 4);
     }
 
-
-    // private boolean is_float(InstRegallocPair inst) {
-
-    //     for(Map<K,V>.Entry<String, String> entry : inst.get_regalloc().entrySet()) {
-    //         if(floatsSet.contains(hash_code(entry.getKey()))) {
-    //             return true;
-    //         }
-    //         if(intsSet.contains(hash_code(entry.getKey()))) {
-    //             return false;
-    //         }
-    //     }
-
-    //     return false;
-    // }
+    private void teardown(FunctionIR func) {
+        this.text.add(String.format("\taddi $sp, $sp, %d", this.totalStackSize - func.args().size() * 4));
+        int offset = 0;
+        List<String> regs = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5");
+        for (String reg : regs) {
+            this.text.add(String.format("\tlw %s, $sp(%d)", reg, offset));
+            offset -= 4;
+        }
+    }
 
     private Integer parse_int(String s) {
         try {
@@ -219,10 +173,6 @@ public class MIPSGenerator {
         } catch (NumberFormatException e){
             return null;
         }
-    }
-
-    private int var_location(String var) {
-
     }
 
     public void translate(List<FunctionIR> funcs, InstRegallocPair inst) {
@@ -361,8 +311,8 @@ public class MIPSGenerator {
             case "brneq":
                 this.text.add(String.format("\tbeq %s, %s, %s", params.get(0),  params.get(1),  params.get(2)));
                 return;
-            case "breg":
-                this.text.add(String.format("\tsub %s, %s, %s", params.get(0), params.get(1), "$t7"));
+            case "breq":
+                this.text.add(String.format("\tsub %s, %s, %s", "$t7", params.get(0), params.get(1)));
                 String breglabel = hash_code(params.get(0));
                 this.text.add(String.format("\tbeq %s, %s, %s", "$t7",  "$zero",  breglabel));
                 return;
@@ -460,24 +410,6 @@ public class MIPSGenerator {
             default:
                 System.out.println(String.format("Handle %s, %s", inst.get_inst().type(), inst.toString())); // TODO: remove this
                 return;
-        }
-    }
-
-    private void teardown(FunctionIR func) {
-        int greatest_offset = 0; // most negative
-        for (Integer offset : this.variable_locations.values()) {
-            if (offset < greatest_offset) {
-                greatest_offset = offset;
-            }
-        }
-        greatest_offset += func.args().size() * 4;
-        this.text.add(String.format("\taddi $sp, $sp, %d", greatest_offset));
-
-        int offset = 0;
-        List<String> regs = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5");
-        for (String reg : regs) {
-            this.text.add(String.format("\tlw %s, $sp(%d)", reg, offset));
-            offset += 4;
         }
     }
 
