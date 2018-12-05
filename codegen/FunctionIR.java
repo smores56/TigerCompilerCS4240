@@ -42,36 +42,29 @@ public class FunctionIR {
         this.save_to_file(naive_instructions, file_name1);
         MIPSGenerator naiveMips = new MIPSGenerator(this, this.ints, this.floats, this.name, naive_instructions);
         this.translate_to_mips(funcs, naive_instructions, file_name1, naiveMips);
-
-        this.text.set(0, naiveMips.get_text());
-
+        this.text.add(naiveMips.text);
         System.out.println("Done.");
 
         System.out.println("Method 2 of 3, CFG + Intra-Block Allocation:");
-        MIPSGenerator blockMips = new MIPSGenerator(this, this.ints, this.floats, this.name);
-
         System.out.println("Generating instructions...");
         List<InstRegallocPair> block_instructions = this.intrablock_regalloc(registers);
-
         String file_name2 = String.format("../output/%s-%s.block.ir", file_base, this.name);
         System.out.println("Done. Saving to \"" + file_name2 + "\"...");
         this.save_to_file(block_instructions, file_name2);
+        MIPSGenerator blockMips = new MIPSGenerator(this, this.ints, this.floats, this.name, block_instructions);
         this.translate_to_mips(funcs, block_instructions, file_name2, blockMips);
-
-        this.text.set(1, blockMips.get_text());
-
+        this.text.add(blockMips.text);
         System.out.println("Done.");
 
         System.out.println("Method 3 of 3, Global Map-Coloring Allocation:");
-        MIPSGenerator colorMips = new MIPSGenerator(this, this.ints, this.floats, this.name);
-
         System.out.println("Generating instructions...");
         List<InstRegallocPair> colored_instructions = this.map_coloring_regalloc(registers);
         String file_name3 = String.format("../output/%s-%s.full.ir", file_base, this.name);
         System.out.println("Done. Saving to \"" + file_name3 + "\"...");
         this.save_to_file(colored_instructions, file_name3);
+        MIPSGenerator colorMips = new MIPSGenerator(this, this.ints, this.floats, this.name, colored_instructions);
         this.translate_to_mips(funcs, colored_instructions, file_name2, colorMips);
-        this.text.set(2, colorMips.get_text());
+        this.text.add(colorMips.text);
         System.out.println("Done.");
     }
 
@@ -335,7 +328,7 @@ public class FunctionIR {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file_name));
             for (InstRegallocPair pair : instructions) {
-                bw.write(pair.get_inst().toString());
+                bw.write(pair.get_inst().toString() + "\n");
             }
             bw.close();
         } catch (IOException e) {
@@ -357,14 +350,7 @@ public class FunctionIR {
         for(InstRegallocPair inst: init_moved) {
             mips.translate(funcs, inst);
         }
-        mips.add_stack_setup();
-        for(String s: mips.get_data(init_moved)) {
-            System.out.println(s);
-        }
-        for(String s: mips.get_text()) {
-            System.out.println(s);
-        }
-
+        mips.add_stack_setup(this);
     }
 
     public List<InstRegallocPair> move_init_calls(List<InstRegallocPair> instructions) {
@@ -403,7 +389,6 @@ public class FunctionIR {
         return rest;
     }
 
-
     public TreeMap<String, String> args() {
         return this.args;
     }
@@ -411,7 +396,6 @@ public class FunctionIR {
     public String name() {
         return this.name;
     }
-
 
     public ArrayList<List<String>> getText() {
         return this.text;

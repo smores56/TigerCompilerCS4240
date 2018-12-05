@@ -29,8 +29,10 @@ public class Codegen {
                     String func_def = lines.remove(0);
                     String return_type = func_def.split(" ")[0];
                     TreeMap<String, String> fargs = new TreeMap<>();
-                    for (String arg_type_pair : func_def.split("(")[1].split(")")[0].split(", *")) {
-                        fargs.put(arg_type_pair.split(" ")[0], arg_type_pair.split(" ")[1]);
+                    for (String arg_type_pair : func_def.split("\\(")[1].split("\\)")[0].split(", *")) {
+                        if (!arg_type_pair.equals("")) {
+                            fargs.put(arg_type_pair.split(" ")[0], arg_type_pair.split(" ")[1]);
+                        }
                     }
                     String ints_line = lines.remove(0);
                     String[] ints = ints_line.substring(9, ints_line.length()).trim().split(", *");
@@ -64,10 +66,25 @@ public class Codegen {
                 f.run(name, functions);
                 ArrayList<List<String>> temp = f.getText();
                 naive.addAll(naive.size(), temp.get(0));
-                block.addAll(naive.size(), temp.get(1));
-                color.addAll(naive.size(), temp.get(2));
+                block.addAll(block.size(), temp.get(1));
+                color.addAll(color.size(), temp.get(2));
                 System.out.println("------------------------------\n");
             }
+
+            System.out.println("===================");
+            for(String s: naive) {
+                System.out.println(s);
+            }
+            System.out.println("===================");
+            for(String s: block) {
+                System.out.println(s);
+            }
+            System.out.println("===================");
+            for(String s: color) {
+                System.out.println(s);
+            }
+
+
 
         }
     }
