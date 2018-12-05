@@ -17,7 +17,7 @@ public class MIPSGenerator {
     private int topOfStack;
     private int framePointer;
     private List<String> data;
-    private List<String> text;
+    public List<String> text;
     private HashSet<String> intsSet;
     private HashSet<String> floatsSet;
     private String[] ints;
@@ -153,6 +153,48 @@ public class MIPSGenerator {
             this.text.add(1, String.format("sw %s, $sp(%d)", reg, offset));
             offset += 4;
         }
+        int local_var_size =0;
+
+        for(String s: this.ints) {
+            int size_current = 4;
+            int amount = 1;
+            String arr_name = null;
+            if(s.contains("\\[")) {
+                String[] split_by_open = s.split("\\[");
+                arr_name = split_by_open[0];
+                for(String i: split_by_open) {
+                    i.replace("\\]", "");
+                }
+                for(int i = 1; i < split_by_open.length; i++) {
+                    amount = amount * Integer.parseInt(split_by_open[i]);
+                }
+            }
+            size_current = size_current * amount;
+            local_var_size+=size_current;
+        }
+
+        for(String s: this.floats) {
+            int size_current = 4;
+            int amount = 1;
+            String arr_name = null;
+            if(s.contains("\\[")) {
+                String[] split_by_open = s.split("\\[");
+                arr_name = split_by_open[0];
+                for(String i: split_by_open) {
+                    i.replace("\\]", "");
+                }
+                for(int i = 1; i < split_by_open.length; i++) {
+                    amount = amount * Integer.parseInt(split_by_open[i]);
+                }
+            }
+            size_current = size_current * amount;
+            local_var_size+=size_current;
+        }
+
+        this.stackPointer = this.stackPointer + local_var_size + 24;
+
+        // In every iteration I have the current location on the stack (the offset) and the arr_name/s being the actual variable;
+
     }
 
 
