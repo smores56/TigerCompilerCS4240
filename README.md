@@ -1,7 +1,6 @@
-# CS 4240 Tiger Compiler Frontend
+# CS 4240 Tiger Compiler Backend
 
 ###### By Sam Mohr, Harish Kamath, and Andrey Lukin
-
 
 ### 1. Design Internals
 * Project Structure
@@ -12,19 +11,24 @@
         * ```SymbolTable.java``` is our implementation of the Symbol Table used to handle scopes and variables.
         *  ```Tuple.java``` our small implementation of a Tuple class to use in the Symbol table.
         *  ```Tiger.java``` is our main program that runs a the Tiger frontend compiler on the input.
-    *  ```./project1_test_code/```
+    *  ```./phase2_test_code/```
         * Contains ```testing.sh```, a bash script used for testing   
         * Contains different files with test inputs for the IR, Symbol Table, and basic Tiger code.
+    * ```codegen```
+        * ```intructions```
+            * Contains all of the objects for IR to correct register allocation intructions.
+            * Used for the structure of the code throughout the project
+        * ```LiveRangeGraph, Instruction, ControlFlow, and Codeblock```
+            * The necessary files to run the correct register allocation algorithms.
+        * ```MIPSGenerator```
+            * The file with the algorithm for instruction selection, code generation, and stack initialization.
 
 
 ### 2. How to Build
-* For compilation of the Tiger compile, running ```bash ./compile.sh``` will:
-    1. Run ANTLR on the grammar provided in ```/grammar/Tiger.g4``` and create all necessary Java classes in ```/parser/```.
-    2. Compile all of the Java files in the parser folder.
-* To test, running ```bash ./project1_test_code/testing.sh``` will:
-    1. Run the normal compilation routine.
-    2. Run the Tiger compiler on all of the test code provided in the ```/project1_test_code/``` directory and output them into the ```/project1_test_code/output/``` folder with a ```.tiger.txt.out``` as the output.
-    3. ```.tiger.txt.diff.out``` outputs the difference between the IR you had and the IR provided.
+* For compilation of the Codegen master role, compile all of the Java files in the ```Codegen``` directory.
+    * ```javac *.java```
+* To run, give the Codegen compiled class a Tiger.ir file
+    * ```java Codegen ../phase2_test_code/ir/factorial.ir```
 
 ### 3. Run Examples
-* ```java ./parser/Tiger ./project1_test_code/test1.tiger.txt```
+* ```java Codegen ../phase2_test_code/ir/factorial.ir```
