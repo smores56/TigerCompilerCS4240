@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-<<<<<<< HEAD
 import java.util.TreeMap;
 
 
@@ -25,22 +24,6 @@ public class MIPSGenerator {
     private HashMap<String, String> arrays;
     private String name;
     private HashMap<String, Integer> variable_locations;
-=======
-
-// The only things that can accept labels are load, store, array_assign, and assign
-public class MIPSGenerator {
-    public int stackPointer;
-    public int framePointer;
-    public List<String> data;
-    public List<String> text;
-    public HashSet<String> intsSet;
-    public HashSet<String> floatsSet;
-    public String[] ints;
-    public String[] floats;
-    public HashMap<String, String> arrays;
-    
-    public String name;
->>>>>>> 8d163dae8c0e4c2dbd99a9727274fed6aab55547
 
     public MIPSGenerator(String[] ints, String[] floats, String name, List<InstRegallocPair> instructions) {
         this.stackPointer = 0;
@@ -352,7 +335,6 @@ public class MIPSGenerator {
                 } else if(params.get(0).equals("printf")) {
                     this.print(params.get(1), false);
                 } else {
-<<<<<<< HEAD
                     FunctionIR func = null;
                     for (FunctionIR f : funcs) {
                         if (f.name().equals(params.get(0))) {
@@ -393,45 +375,11 @@ public class MIPSGenerator {
                 }
                 this.text.add(String.format("jal %s", func.name()));
                 this.text.add(String.format("sub $sp, $sp, %d", args.size() * 4 + 4));
-=======
-                    System.out.println("Get the rest of the function working! " + inst.toString());
-                    for(int i = 2; i < params.size(); i++) {
-                        // save all registers on the stack
-                        // add_another_argument();
-                    }
-                    this.text.add(String.format("\tjal %s", params.get(0)));
-
-                    // for(int i = 0; i < Math.min(params.size(), 4); i++) { // This is super hacky
-                    //     if(params.get(i).charAt(0) == '$') {
-                    //         name_of_label = this.name + "__" + params.get(i).substring(1, params.get(i).length());
-                    //     } else {
-                    //         name_of_label = this.name + "__" + params.get(i);
-                    //     }
-                    //     if(this.intsSet.contains(name_of_label) || this.floatsSet.contains(name_of_label)){
-                    //         this.text.add(String.format("\tlw %s, %s(%s)", "$a" + i, name_of_label, "$zero"));
-                    //     } else {
-                    //         this.text.add(String.format("\tlw %s, %s(%s)", "$a" + i, params.get(i), "$zero"));
-                    //     }
-                    // }
-                    // this.text.add(String.format("\tadd %s, %s, %s", params.get(0), "$v0", "$zero"));
-                }
-                return;
-
-            case "callr":
-                for(int i = 2; i < params.size(); i++) {
-                    // save all registers on the stack
-                    // add_another_argument();
-                }
-                this.text.add(String.format("\tjal %s", params.get(0)));
-                this.text.add(String.format("\tadd %s, %s, %s", params.get(0), "$v0", "$zero"));
-
-                return;
->>>>>>> 8d163dae8c0e4c2dbd99a9727274fed6aab55547
             case "goto":
                 this.text.add(String.format("\tj %s", params.get(0)));
                 return;
             case "empty_return":
-                
+
                 this.text.add(String.format("\tj $ra"));
                 return;
             case "return":
