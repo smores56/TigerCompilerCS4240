@@ -150,7 +150,7 @@ public class MIPSGenerator {
         List<String> regs = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5");
         int offset = 0;
         for (String reg : regs) {
-            this.text.add(1, String.format("sw %s, $sp(%d)", reg, offset));
+            this.text.add(1, String.format("sw %s, %d($sp)", reg, offset));
             offset -= 4;
         }
         this.text.add(1, String.format("subi $sp, $sp, %d", this.totalStackSize - func.args().size() * 4);
@@ -161,7 +161,7 @@ public class MIPSGenerator {
         int offset = 0;
         List<String> regs = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5");
         for (String reg : regs) {
-            this.text.add(String.format("\tlw %s, $sp(%d)", reg, offset));
+            this.text.add(String.format("\tlw %s, %d($sp)", reg, offset));
             offset -= 4;
         }
     }
@@ -280,32 +280,32 @@ public class MIPSGenerator {
                 return;
             case "store":
                 int offset = this.var_offset(params.get(0));
-                this.text.add(String.format("\tsw %s, $sp(%s)", params.get(1), offset));
+                this.text.add(String.format("\tsw %s, %d($sp)", params.get(1), offset));
                 return;
             case "load":
                 int offset = this.var_offset(params.get(1));
-                this.text.add(String.format("\tlw %s, $sp(%s)", params.get(0), offset));
+                this.text.add(String.format("\tlw %s, %d($sp)", params.get(0), offset));
                 return;
-            case "array_load":      
-                this.text.add(String.format("\tlw %s, %s($sp)", "$t7", this.var_offset(params.get(0))));
+            case "array_load":
+                this.text.add(String.format("\tlw %s, %d($sp)", "$t7", this.var_offset(params.get(0))));
                 this.text.add(String.format("\tli %s, %s", "$t6", params.get(1)));
                 this.text.add(String.format("\tadd %s, %s, %s", "$t6", "$t6","$t6"));
                 this.text.add(String.format("\tadd %s, %s, %s", "$t6", "$t6","$t6"));
                 this.text.add(String.format("\tadd %s, %s, %s", "$t5", "$t6","$t7"));
-                this.text.add(String.format("\tlw %s, %s(%s)", params.get(0), "$zero", "$t5"));
+                this.text.add(String.format("\tlw %s, %d(%s)", params.get(0), "$zero", "$t5"));
                 return;
             case "array_store":
-                this.text.add(String.format("\tlw %s, %s($sp)", "$t7", this.var_offset(params.get(1))));
+                this.text.add(String.format("\tlw %s, %d($sp)", "$t7", this.var_offset(params.get(1))));
                 this.text.add(String.format("\tli %s, %s", "$t6", params.get(2)));
                 this.text.add(String.format("\tadd %s, %s, %s", "$t6", "$t6","$t6"));
                 this.text.add(String.format("\tadd %s, %s, %s", "$t6", "$t6","$t6"));
                 this.text.add(String.format("\tadd %s, %s, %s", "$t5", "$t6","$t7"));
-                this.text.add(String.format("\tsw %s, %s(%s)", params.get(0), "$zero","$t5"));
+                this.text.add(String.format("\tsw %s, 0(%s)", params.get(0), "$t5"));
                 return;
             case "array_assign":
                 this.text.add("\tli $t8, " + params.get(2));
                 for(int i = 0; i < parse_int(params.get(1)); i = i + 4) {
-                    this.text.add("\tsw $t8, -" + (i + this.var_location(params.get(0))) + "($sp)");
+                    this.text.add(String.format("\tsw $t8, %d($sp)", -(i + this.var_location(params.get(0)))));
                 }
                 return;
             case "brneq":
@@ -354,7 +354,7 @@ public class MIPSGenerator {
                     int offset = -args.size();
                     for (String arg : arg.keySet()) {
                         String arg_reg = inst.get_regalloc().get(arg);
-                        this.text.add(String.format("sw %s, $sp(%d)", arg_reg, offset));
+                        this.text.add(String.format("sw %s, %d($sp)", arg_reg, offset));
                         offset += 4;
                     }
                     this.text.add(String.format("jal %s", func.name()));
@@ -374,7 +374,7 @@ public class MIPSGenerator {
                 int offset = -args.size();
                 for (String arg : arg.keySet()) {
                     String arg_reg = inst.get_regalloc().get(arg);
-                    this.text.add(String.format("\tsw %s, $sp(%d)", arg_reg, offset));
+                    this.text.add(String.format("\tsw %s, %d($sp)", arg_reg, offset));
                     offset += 4;
                 }
                 this.text.add(String.format("\tjal %s", func.name()));
