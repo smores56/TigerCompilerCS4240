@@ -238,7 +238,7 @@ public class FunctionIR {
 
         List<InstRegallocPair> instructions = new ArrayList<>();
         for (String var : cf.get_blocks().get(0).get_liveness(0)) {
-            if coloring.containsKey(var) {
+            if (coloring.containsKey(var)) {
                 instructions.add(
                     new InstRegallocPair(new LoadInst(new String[]{coloring.get(var), var}), null));
             }
