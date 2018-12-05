@@ -237,6 +237,13 @@ public class FunctionIR {
         HashMap<String, String> coloring = lrg.color_graph(registers, spill_costs);
 
         List<InstRegallocPair> instructions = new ArrayList<>();
+        for (String var : cf.get_blocks().get(0).get_liveness(0)) {
+            if coloring.containsKey(var) {
+                instructions.add(
+                    new InstRegallocPair(new LoadInst(new String[]{coloring.get(var), var}), null));
+            }
+        }
+
         for (Codeblock block : cf.get_blocks()) {
             Instruction[] lines = block.get_lines();
             for (int i = 0; i < lines.length; i++) {
@@ -351,6 +358,7 @@ public class FunctionIR {
             mips.translate(funcs, inst);
         }
         mips.add_stack_setup(this);
+        // mips.add_stack_setup(this, instructions);
     }
 
     public List<InstRegallocPair> move_init_calls(List<InstRegallocPair> instructions) {
