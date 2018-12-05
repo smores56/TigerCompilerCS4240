@@ -148,7 +148,7 @@ public class MIPSGenerator {
 
                 if(!is_register(params.get(0))) {
                     andparam0 = "$t6";
-                    this.text.add(String.format("\tli %s, %s", andparam0, params.get(1)));
+                    this.text.add(String.format("\tli %s, %s", andparam0, params.get(0)));
                 }
 
                 this.text.add(String.format("\tand %s, %s, %s", params.get(2), andparam0, andparam1));
@@ -163,7 +163,7 @@ public class MIPSGenerator {
 
                 if(!is_register(params.get(0))) {
                     orparam0 = "$t6";
-                    this.text.add(String.format("\tli %s, %s", orparam0, params.get(1)));
+                    this.text.add(String.format("\tli %s, %s", orparam0, params.get(0)));
                 }
                 this.text.add(String.format("\tor %s, %s, %s", params.get(2), orparam0, orparam1));
                 return;
@@ -177,7 +177,7 @@ public class MIPSGenerator {
 
                 if(!is_register(params.get(0))) {
                     addparam0 = "$t6";
-                    this.text.add(String.format("\tli %s, %s", addparam0, params.get(1)));
+                    this.text.add(String.format("\tli %s, %s", addparam0, params.get(0)));
                 }
                 this.text.add(String.format("\tadd %s, %s, %s", params.get(2), addparam0, addparam1));
                 return;
@@ -191,7 +191,7 @@ public class MIPSGenerator {
 
                 if(!is_register(params.get(0))) {
                     subparam0 = "$t6";
-                    this.text.add(String.format("\tli %s, %s", subparam0, params.get(1)));
+                    this.text.add(String.format("\tli %s, %s", subparam0, params.get(0)));
                 }
                 this.text.add(String.format("\tsub %s, %s, %s", params.get(2), subparam0, subparam1));
                 return;
@@ -205,7 +205,7 @@ public class MIPSGenerator {
 
                 if(!is_register(params.get(0))) {
                     multparam0 = "$t6";
-                    this.text.add(String.format("\tli %s, %s", multparam0, params.get(1)));
+                    this.text.add(String.format("\tli %s, %s", multparam0, params.get(0)));
                 }
 
 
@@ -221,7 +221,7 @@ public class MIPSGenerator {
                 }
                 if(!is_register(params.get(0))) {
                     divparam0 = "$t6";
-                    this.text.add(String.format("\tli %s, %s", divparam0, params.get(1)));
+                    this.text.add(String.format("\tli %s, %s", divparam0, params.get(0)));
                 }
                 this.text.add(String.format("\tdiv %s, %s",divparam0, divparam1));
                 this.text.add(String.format("\tmflo %s", params.get(2)));
@@ -270,31 +270,85 @@ public class MIPSGenerator {
                 }
                 return;
             case "brneq":
-                this.text.add(String.format("\tbeq %s, %s, %s", params.get(0),  params.get(1),  params.get(2)));
+                String brneq0 = params.get(0);
+                String brneq1 = params.get(1);
+                if (!is_register(brneq0)) {
+                    brneq0 = "$t7";
+                    this.text.add(String.format("\tli %s, %s", brneq0, params.get(0)));
+                }
+                if (!is_register(brneq1)) {
+                    brneq1 = "$t6";
+                    this.text.add(String.format("\tli %s, %s", brneq1, params.get(1)));
+                }
+                this.text.add(String.format("\tbeq %s, %s, %s", brneq0, brneq1, params.get(2)));
                 return;
             case "breq":
-                // this.text.add(String.format("\tsub %s, %s, %s", params.get(0), params.get(1), "$t7"));
-                // String breglabel = hash_code(params.get(0));
-                this.text.add(String.format("\tbne %s, %s, %s", params.get(0), params.get(1), params.get(2)));
+                String breq0 = params.get(0);
+                String breq1 = params.get(1);
+                if (!is_register(breq0)) {
+                    breq0 = "$t7";
+                    this.text.add(String.format("\tli %s, %s", breq0, params.get(0)));
+                }
+                if (!is_register(breq1)) {
+                    breq1 = "$t6";
+                    this.text.add(String.format("\tli %s, %s", breq1, params.get(1)));
+                }
+                this.text.add(String.format("\tbne %s, %s, %s", breq0, breq1, params.get(2)));
                 return;
             case "brlt":
-                this.text.add(String.format("\tsub %s, %s, %s", params.get(0), params.get(1), "$t7"));
-                // String breglabel = hash_code(params.get(0));
+                String brlt0 = params.get(0);
+                String brlt1 = params.get(1);
+                if (!is_register(brlt0)) {
+                    brlt0 = "$t7";
+                    this.text.add(String.format("\tli %s, %s", brlt0, params.get(0)));
+                }
+                if (!is_register(brlt1)) {
+                    brlt1 = "$t6";
+                    this.text.add(String.format("\tli %s, %s", brlt1, params.get(1)));
+                }
+                this.text.add(String.format("\tsub %s, %s, %s", brlt0, brlt1, "$t7"));
                 this.text.add(String.format("\tblez %s, %s", "$t7", params.get(2)));
                 return;
             case "brgt":
-                this.text.add(String.format("\tsub %s, %s, %s", params.get(0), params.get(1), "$t7"));
-                // String brgtlabel = hash_code(params.get(0));
+                String brgt0 = params.get(0);
+                String brgt1 = params.get(1);
+                if (!is_register(brgt0)) {
+                    brgt0 = "$t7";
+                    this.text.add(String.format("\tli %s, %s", brgt0, params.get(0)));
+                }
+                if (!is_register(brgt1)) {
+                    brgt1 = "$t6";
+                    this.text.add(String.format("\tli %s, %s", brgt1, params.get(1)));
+                }
+                this.text.add(String.format("\tsub %s, %s, %s", brgt0, brgt1, "$t7"));
                 this.text.add(String.format("\tbgez %s, %s", "$t7",  params.get(2)));
                 return;
             case "brleq":
-                this.text.add(String.format("\tsub %s, %s, %s", params.get(0), params.get(1), "$t7"));
-                // String brleqlabel = hash_code(params.get(0));
+                String brleq0 = params.get(0);
+                String brleq1 = params.get(1);
+                if (!is_register(brleq0)) {
+                    brleq0 = "$t7";
+                    this.text.add(String.format("\tli %s, %s", brleq0, params.get(0)));
+                }
+                if (!is_register(brleq1)) {
+                    brleq1 = "$t6";
+                    this.text.add(String.format("\tli %s, %s", brleq1, params.get(1)));
+                }
+                this.text.add(String.format("\tsub %s, %s, %s", brleq0, brleq1, "$t7"));
                 this.text.add(String.format("\tbltz %s, %s", "$t7", params.get(2)));
                 return;
             case "brgeq":
-                this.text.add(String.format("\tsub %s, %s, %s", params.get(0), params.get(1), "$t7"));
-                // String brgeqlabel = hash_code(params.get(0));
+                String brgeq0 = params.get(0);
+                String brgeq1 = params.get(1);
+                if (!is_register(brgeq0)) {
+                    brgeq0 = "$t7";
+                    this.text.add(String.format("\tli %s, %s", brgeq0, params.get(0)));
+                }
+                if (!is_register(brgeq1)) {
+                    brgeq1 = "$t6";
+                    this.text.add(String.format("\tli %s, %s", brgeq1, params.get(1)));
+                }
+                this.text.add(String.format("\tsub %s, %s, %s", brgeq0, brgeq1, "$t7"));
                 this.text.add(String.format("\tbgtz %s, %s", "$t7", params.get(2)));
                 return;
             case "call":
