@@ -255,15 +255,9 @@ public class MIPSGenerator {
                 this.text.add(String.format("\tbeq %s, %s, %s", params.get(0),  params.get(1),  params.get(2)));
                 return;
             case "breq":
-<<<<<<< HEAD
                 // this.text.add(String.format("\tsub %s, %s, %s", params.get(0), params.get(1), "$t7"));
                 // String breglabel = hash_code(params.get(0));
                 this.text.add(String.format("\tbne %s, %s, %s", params.get(0), params.get(1), params.get(2)));
-=======
-                this.text.add(String.format("\tsub %s, %s, %s", "$t7", params.get(0), params.get(1)));
-                String breglabel = hash_code(params.get(0));
-                this.text.add(String.format("\tbeq %s, %s, %s", "$t7",  "$zero",  breglabel));
->>>>>>> b4cb5c7e3554680203736a5c048af818e94e17f8
                 return;
             case "brlt":
                 this.text.add(String.format("\tsub %s, %s, %s", params.get(0), params.get(1), "$t7"));
