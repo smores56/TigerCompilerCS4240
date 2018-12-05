@@ -355,10 +355,18 @@ public class MIPSGenerator {
     public void print(String register_with_argument, boolean integer) {
         if(integer) {
             this.text.add("\tli $v0, 1");
-            this.text.add(String.format("\tmv $a0, %s", register_with_argument));
+            if (parse_int(register_with_argument) != null) {
+                this.text.add(String.format("\taddi $a0, $zero, %s", register_with_argument));
+            } else {
+                this.text.add(String.format("\tadd $a0, %s, $zero", register_with_argument));
+            }
         } else {
             this.text.add("\tli $v0, 2");
-            this.text.add(String.format("\tmv $f12, %s", register_with_argument));
+            if (parse_float(register_with_argument) != null) {
+                this.text.add(String.format("\taddi $a0, $zero, %s", register_with_argument));
+            } else {
+                this.text.add(String.format("\tadd $a0, %s, $zero", register_with_argument));
+            }
         }
         this.text.add("\tsyscall");
     }
