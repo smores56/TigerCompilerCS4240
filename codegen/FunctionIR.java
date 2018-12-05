@@ -14,7 +14,7 @@ import java.util.TreeMap;
 public class FunctionIR {
     private String name;
     private String return_type;
-    private HashMap<String, String> args;
+    private TreeMap<String, String> args;
     private String[] ints;
     private String[] floats;
     private Instruction[] instructions;
@@ -29,7 +29,7 @@ public class FunctionIR {
         this.ints = ints;
         this.floats = floats;
         this.instructions = instructions;
-        this.text = new ArrayList<ArrayList<String>>(3);
+        this.text = new ArrayList<List<String>>(3);
     }
 
     public void run(String file_base, List<FunctionIR> funcs) {

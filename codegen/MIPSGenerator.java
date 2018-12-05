@@ -96,7 +96,7 @@ public class MIPSGenerator {
             this.text.add(1, String.format("sw %s, %d($sp)", reg, offset));
             offset -= 4;
         }
-        this.text.add(1, String.format("subi $sp, $sp, %d", this.totalStackSize - func.args().size() * 4);
+        this.text.add(1, String.format("subi $sp, $sp, %d", this.totalStackSize - func.args().size() * 4));
     }
 
     private void teardown(FunctionIR func) {

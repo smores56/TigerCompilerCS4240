@@ -28,9 +28,9 @@ public class Codegen {
                     String name = line.split(" ")[1];
                     String func_def = lines.remove(0);
                     String return_type = func_def.split(" ")[0];
-                    TreeMap<String, Integer> args = new TreeMap<>();
+                    TreeMap<String, String> fargs = new TreeMap<>();
                     for (String arg_type_pair : func_def.split("(")[1].split(")")[0].split(", *")) {
-                        args.put(arg_type_pair.split(" ")[0], arg_type_pair.split(" ")[1]);
+                        fargs.put(arg_type_pair.split(" ")[0], arg_type_pair.split(" ")[1]);
                     }
                     String ints_line = lines.remove(0);
                     String[] ints = ints_line.substring(9, ints_line.length()).trim().split(", *");
@@ -45,7 +45,7 @@ public class Codegen {
                         line = lines.remove(0);
                     }
 
-                    functions.add(new FunctionIR(name, return_type, args, ints, floats,
+                    functions.add(new FunctionIR(name, return_type, fargs, ints, floats,
                         instructions.toArray(new Instruction[instructions.size()])));
                 } else {
                     line = lines.size() == 0 ? null : lines.remove(0);
