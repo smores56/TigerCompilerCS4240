@@ -479,7 +479,7 @@ public class MIPSGenerator {
             offset -= 4;
         }
         for (String arr_name : arrays) {
-            stack_vars.put(arr_name, offset);
+            stack_vars.put(arr_name, offset - arrays.get(arr_name) * 4);
             offset -= arrays.get(arr_name) * 4;
         }
 
