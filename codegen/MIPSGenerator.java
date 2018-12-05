@@ -285,12 +285,12 @@ public class MIPSGenerator {
                 this.text.add(String.format("\tmflo %s", params.get(2)));
                 return;
             case "store":
-                String storelabel = hash_code(params.get(0));
-                this.text.add(String.format("\tsw %s, %s(%s)", params.get(1), storelabel, "$zero"));
+                int offset = this.var_offset(params.get(0));
+                this.text.add(String.format("\tsw %s, $sp(%s)", params.get(1), offset));
                 return;
             case "load":
-                String loadlabel = hash_code(params.get(0));
-                this.text.add(String.format("\tlw %s, %s(%s)", params.get(1), loadlabel, "$zero"));
+                int offset = this.var_offset(params.get(1));
+                this.text.add(String.format("\tlw %s, $sp(%s)", params.get(0), offset));
                 return;
             case "array_load":
                 this.text.add(String.format("\tla %s, %s", "$t7", params.get(1)));
@@ -356,7 +356,7 @@ public class MIPSGenerator {
                         }
                     }
                     TreeMap<String, String> args = func.args();
-                    this.text.add(String.format("add $sp, $sp, %d", args.size() * 4));
+                    this.text.add(String.format("addi $sp, $sp, %d", args.size() * 4));
                     int offset = -args.size();
                     for (String arg : arg.keySet()) {
                         String arg_reg = inst.get_regalloc().get(arg);
@@ -364,7 +364,7 @@ public class MIPSGenerator {
                         offset += 4;
                     }
                     this.text.add(String.format("jal %s", func.name()));
-                    this.text.add(String.format("sub $sp, $sp, %d", args.size() * 4));
+                    this.text.add(String.format("subi $sp, $sp, %d", args.size() * 4));
                 }
                 return;
             case "callr":
@@ -376,7 +376,7 @@ public class MIPSGenerator {
                     }
                 }
                 TreeMap<String, String> args = func.args();
-                this.text.add(String.format("\tadd $sp, $sp, %d", args.size() * 4));
+                this.text.add(String.format("\taddi $sp, $sp, %d", args.size() * 4));
                 int offset = -args.size();
                 for (String arg : arg.keySet()) {
                     String arg_reg = inst.get_regalloc().get(arg);
@@ -384,23 +384,56 @@ public class MIPSGenerator {
                     offset += 4;
                 }
                 this.text.add(String.format("\tjal %s", func.name()));
-                this.text.add(String.format("\tsub $sp, $sp, %d", args.size() * 4));
+                this.text.add(String.format("\tsubi $sp, $sp, %d", args.size() * 4));
                 this.text.add(String.format("\taddi %s, $v0, 0", params.get(0)));
                 return;
             case "goto":
                 this.text.add(String.format("\tj %s", params.get(0)));
                 return;
             case "empty_return":
-
+                FunctionIR func = null;
+                for (FunctionIR f : funcs) {
+                    if (f.name().equals(params.get(0))) {
+                        func = f;
+                        break;
+                    }
+                }
+                this.teardown(func);
                 this.text.add(String.format("\tj $ra"));
                 return;
             case "return":
-                this.text.add(String.format("\tadd %s, %s, %s", "$v0", params.get(0), "$zero"));
+                this.text.add(String.format("\tadd $v0, %s, %s", params.get(0), "$zero"));
+                FunctionIR func = null;
+                for (FunctionIR f : funcs) {
+                    if (f.name().equals(params.get(0))) {
+                        func = f;
+                        break;
+                    }
+                }
+                this.teardown(func);
                 this.text.add(String.format("\tj $ra"));
                 return;
             default:
                 System.out.println(String.format("Handle %s, %s", inst.get_inst().type(), inst.toString())); // TODO: remove this
                 return;
+        }
+    }
+
+    private void teardown(FunctionIR func) {
+        int greatest_offset = 0; // most negative
+        for (Integer offset : this.variable_locations.values()) {
+            if (offset < greatest_offset) {
+                greatest_offset = offset;
+            }
+        }
+        greatest_offset += func.args().size() * 4;
+        this.text.add(String.format("\taddi $sp, $sp, %d", greatest_offset));
+
+        int offset = 0;
+        List<String> regs = Arrays.asList("$s0", "$s1", "$s2", "$s3", "$s4", "$s5");
+        for (String reg : regs) {
+            this.text.add(String.format("\tlw %s, $sp(%d)", reg, offset));
+            offset += 4;
         }
     }
 
@@ -455,5 +488,9 @@ public class MIPSGenerator {
         }
 
         return var_locations;
+    }
+
+    public int var_offset(String var) {
+        return this.variable_locations.get(var);
     }
 }
